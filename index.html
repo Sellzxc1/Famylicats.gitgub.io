@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Мультиплеерная игра с джойстиком</title>
+    <title>ММО РПГ с джойстиком</title>
     <style>
         body {
             margin: 0;
@@ -11,7 +11,7 @@
             overflow: hidden;
             background-color: #4CAF50; /* Зеленое поле */
             touch-action: none;
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
         }
         
         #gameCanvas {
@@ -50,28 +50,192 @@
             width: 100px;
             margin-left: -50px;
             top: -20px;
+            font-size: 14px;
         }
         
-        #playerCount {
+        .mob-health-bar {
+            position: absolute;
+            width: 40px;
+            height: 5px;
+            background-color: red;
+            top: -10px;
+            left: 5px;
+        }
+        
+        .mob-health-bar-fill {
+            height: 100%;
+            background-color: green;
+        }
+        
+        #inventory {
+            position: fixed;
+            bottom: 50px;
+            right: 20px;
+            width: 300px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            display: flex;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        
+        .inventory-slot {
+            width: 60px;
+            height: 60px;
+            margin-right: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 12px;
+            position: relative;
+        }
+        
+        .inventory-slot:last-child {
+            margin-right: 0;
+        }
+        
+        .item-count {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 10px;
+            color: white;
+        }
+        
+        #stats-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        #xp-bar {
+            width: 200px;
+            height: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            margin-top: 5px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        #xp-bar-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50;
+            transition: width 0.3s;
+        }
+        
+        #skills-panel {
             position: fixed;
             top: 10px;
             right: 10px;
             background-color: rgba(0, 0, 0, 0.5);
             color: white;
-            padding: 5px 10px;
+            padding: 10px;
             border-radius: 5px;
             font-size: 14px;
         }
         
-        #nameInput {
+        .skill {
+            margin-bottom: 5px;
+        }
+        
+        #combat-log {
+            position: fixed;
+            bottom: 160px;
+            left: 10px;
+            width: 200px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 12px;
+            overflow-y: auto;
+        }
+        
+        #attack-button {
+            position: fixed;
+            bottom: 50px;
+            right: 330px;
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 16px;
+            border: none;
+            outline: none;
+        }
+        
+        .xp-orb {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: #00FF00;
+            border-radius: 50%;
+            z-index: 10;
+        }
+        
+        #minimap {
+            position: fixed;
+            top: 150px;
+            left: 10px;
+            width: 100px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        #crafting-panel {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            padding: 10px;
-            font-size: 16px;
-            z-index: 100;
+            width: 300px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
             display: none;
+            z-index: 100;
+        }
+        
+        .crafting-item {
+            display: flex;
+            margin-bottom: 10px;
+            padding: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .crafting-item:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        #close-crafting {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -80,12 +244,51 @@
     <div id="joystick">
         <div id="joystickKnob"></div>
     </div>
-    <div id="playerCount">Игроков: 1</div>
-    <input type="text" id="nameInput" placeholder="Введите ваше имя" maxlength="10">
     
-    <!-- Подключаем PeerJS библиотеку -->
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <div id="inventory">
+        <div class="inventory-slot" data-slot="0"></div>
+        <div class="inventory-slot" data-slot="1"></div>
+        <div class="inventory-slot" data-slot="2"></div>
+        <div class="inventory-slot" data-slot="3"></div>
+        <div class="inventory-slot" data-slot="4"></div>
+    </div>
     
+    <div id="stats-panel">
+        <div>Уровень: <span id="level">1</span></div>
+        <div>Здоровье: <span id="health">100</span>/<span id="max-health">100</span></div>
+        <div>Опыт: <span id="xp">0</span>/<span id="next-level-xp">100</span></div>
+        <div id="xp-bar"><div id="xp-bar-fill"></div></div>
+    </div>
+    
+    <div id="skills-panel">
+        <div class="skill">Атака: <span id="attack-skill">1</span></div>
+        <div class="skill">Защита: <span id="defense-skill">1</span></div>
+        <div class="skill">Добыча: <span id="mining-skill">1</span></div>
+    </div>
+    
+    <div id="combat-log"></div>
+    
+    <button id="attack-button">Атака</button>
+    
+    <div id="minimap"></div>
+    
+    <div id="crafting-panel">
+        <button id="close-crafting">×</button>
+        <h3>Крафтинг</h3>
+        <div class="crafting-item" data-item="sword">
+            <div>Меч (Ур. 1)</div>
+            <div style="margin-left: auto;">Дерево x5</div>
+        </div>
+        <div class="crafting-item" data-item="armor">
+            <div>Броня (Ур. 1)</div>
+            <div style="margin-left: auto;">Дерево x10, Камень x5</div>
+        </div>
+        <div class="crafting-item" data-item="pickaxe">
+            <div>Кирка (Ур. 1)</div>
+            <div style="margin-left: auto;">Дерево x3, Камень x2</div>
+        </div>
+    </div>
+
     <script>
         // Инициализация canvas
         const canvas = document.getElementById('gameCanvas');
@@ -106,172 +309,75 @@
             width: 50,
             height: 50,
             speed: 5,
-            name: "Игрок" + Math.floor(Math.random() * 1000),
-            color: getRandomColor(),
-            id: null
+            name: "Игрок",
+            color: "#FF5722",
+            health: 100,
+            maxHealth: 100,
+            level: 1,
+            xp: 0,
+            nextLevelXp: 100,
+            attack: 10,
+            defense: 5,
+            mining: 1,
+            inventory: [],
+            equipped: {
+                weapon: null,
+                armor: null
+            },
+            attackCooldown: 0,
+            lastAttackTime: 0,
+            attackRange: 70,
+            direction: { x: 0, y: 1 } // Направление взгляда игрока
         };
         
-        // Другие игроки
-        const otherPlayers = {};
+        // Заполняем инвентарь пустыми слотами
+        for (let i = 0; i < 5; i++) {
+            player.inventory.push(null);
+        }
         
-        // Элементы интерфейса
-        const playerCountElement = document.getElementById('playerCount');
-        const nameInputElement = document.getElementById('nameInput');
+        // Предметы в игре
+        const items = {
+            wood: { name: "Дерево", type: "resource", image: "wood.png", color: "#8B4513" },
+            stone: { name: "Камень", type: "resource", image: "stone.png", color: "#808080" },
+            sword: { name: "Меч", type: "weapon", image: "sword.png", color: "#C0C0C0", attack: 5, level: 1 },
+            armor: { name: "Броня", type: "armor", image: "armor.png", color: "#4682B4", defense: 3, level: 1 },
+            pickaxe: { name: "Кирка", type: "tool", image: "pickaxe.png", color: "#D2691E", mining: 2, level: 1 },
+            slimeBall: { name: "Шар слизи", type: "resource", image: "slime_ball.png", color: "#00FF00" }
+        };
         
-        // Показать поле ввода имени
-        nameInputElement.style.display = 'block';
-        nameInputElement.value = player.name;
-        nameInputElement.focus();
+        // Ресурсы на карте
+        const resources = [];
+        const RESOURCE_SPAWN_RATE = 0.01;
+        const RESOURCE_TYPES = ["wood", "stone"];
         
-        nameInputElement.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                player.name = this.value || player.name;
-                this.style.display = 'none';
-                initPeerConnection();
+        // Мобы на карте
+        const mobs = [];
+        const MOB_SPAWN_RATE = 0.005;
+        
+        // Опыт на карте
+        const xpOrbs = [];
+        
+        // Загрузка текстур
+        const textures = {};
+        const slimeImage = new Image();
+        slimeImage.src = 'slime.png';
+        textures.slime = slimeImage;
+        
+        const playerImage = new Image();
+        playerImage.src = 'player.png';
+        playerImage.onerror = function() {
+            console.log("Изображение player.png не найдено, используется цветной прямоугольник");
+            player.useImage = false;
+        };
+        player.useImage = true;
+        
+        // Загрузка изображений предметов
+        for (const itemId in items) {
+            if (items[itemId].image) {
+                const img = new Image();
+                img.src = items[itemId].image;
+                items[itemId].img = img;
             }
-        });
-        
-        // Генерация случайного цвета
-        function getRandomColor() {
-            const colors = ['#FF5722', '#2196F3', '#9C27B0', '#FFEB3B', '#E91E63', '#00BCD4'];
-            return colors[Math.floor(Math.random() * colors.length)];
-        }
-        
-        // PeerJS соединение
-        let peer;
-        let hostConnection;
-        let isHost = false;
-        
-        function initPeerConnection() {
-            // Создаем Peer соединение
-            peer = new Peer();
-            
-            peer.on('open', function(id) {
-                console.log('My peer ID is: ' + id);
-                player.id = id;
-                
-                // Проверяем, есть ли уже хост в URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const hostId = urlParams.get('host');
-                
-                if (hostId) {
-                    // Подключаемся к существующему хосту
-                    connectToHost(hostId);
-                } else {
-                    // Мы первый игрок - становимся хостом
-                    becomeHost();
-                    // Добавляем наш ID в URL
-                    window.history.pushState({}, '', `?host=${id}`);
-                }
-            });
-            
-            peer.on('connection', function(conn) {
-                console.log('Новое подключение:', conn.peer);
-                setupConnection(conn);
-            });
-            
-            peer.on('error', function(err) {
-                console.error('Peer error:', err);
-            });
-        }
-        
-        function becomeHost() {
-            isHost = true;
-            console.log('Я хост!');
-            updatePlayerCount();
-        }
-        
-        function connectToHost(hostId) {
-            console.log('Подключаемся к хосту:', hostId);
-            hostConnection = peer.connect(hostId);
-            setupConnection(hostConnection);
-        }
-        
-        function setupConnection(conn) {
-            conn.on('open', function() {
-                console.log('Соединение установлено с', conn.peer);
-                
-                // Отправляем информацию о себе
-                sendPlayerData();
-                
-                // Если мы хост, отправляем новому игроку данные всех текущих игроков
-                if (isHost) {
-                    const allPlayers = {};
-                    allPlayers[player.id] = {
-                        x: player.x,
-                        y: player.y,
-                        name: player.name,
-                        color: player.color
-                    };
-                    
-                    for (const id in otherPlayers) {
-                        allPlayers[id] = otherPlayers[id];
-                    }
-                    
-                    conn.send({
-                        type: 'init',
-                        players: allPlayers
-                    });
-                    
-                    updatePlayerCount();
-                }
-            });
-            
-            conn.on('data', function(data) {
-                handleNetworkData(data, conn.peer);
-            });
-            
-            conn.on('close', function() {
-                console.log('Соединение закрыто:', conn.peer);
-                if (conn.peer in otherPlayers) {
-                    delete otherPlayers[conn.peer];
-                    updatePlayerCount();
-                }
-            });
-            
-            conn.on('error', function(err) {
-                console.error('Ошибка соединения:', err);
-            });
-        }
-        
-        function sendPlayerData() {
-            if (!hostConnection) return;
-            
-            hostConnection.send({
-                type: 'update',
-                id: player.id,
-                x: player.x,
-                y: player.y,
-                name: player.name,
-                color: player.color
-            });
-        }
-        
-        function handleNetworkData(data, peerId) {
-            if (data.type === 'init') {
-                // Инициализация других игроков
-                for (const id in data.players) {
-                    if (id !== player.id) {
-                        otherPlayers[id] = data.players[id];
-                    }
-                }
-                updatePlayerCount();
-            } else if (data.type === 'update') {
-                // Обновление данных игрока
-                if (data.id !== player.id) {
-                    otherPlayers[data.id] = {
-                        x: data.x,
-                        y: data.y,
-                        name: data.name,
-                        color: data.color
-                    };
-                }
-            }
-        }
-        
-        function updatePlayerCount() {
-            const count = Object.keys(otherPlayers).length + 1;
-            playerCountElement.textContent = `Игроков: ${count}`;
         }
         
         // Джойстик
@@ -283,8 +389,7 @@
             startY: 0,
             moveX: 0,
             moveY: 0,
-            radius: 50,
-            lastUpdate: 0
+            radius: 50
         };
         
         // Обработчики событий для джойстика
@@ -335,6 +440,11 @@
                 joystick.moveY = Math.sin(angle);
                 joystick.knob.style.transform = `translate(${joystick.moveX * joystick.radius + 25}px, ${joystick.moveY * joystick.radius + 25}px)`;
             }
+            
+            // Обновляем направление взгляда игрока
+            if (distance > 10) {
+                player.direction = { x: joystick.moveX, y: joystick.moveY };
+            }
         }
         
         // Показать джойстик на мобильных устройствах
@@ -344,6 +454,422 @@
         
         if (isMobile()) {
             joystick.element.style.display = 'block';
+        }
+        
+        // Кнопка атаки
+        const attackButton = document.getElementById('attack-button');
+        attackButton.addEventListener('touchstart', handleAttackStart);
+        attackButton.addEventListener('touchend', handleAttackEnd);
+        attackButton.addEventListener('mousedown', handleAttackStart);
+        attackButton.addEventListener('mouseup', handleAttackEnd);
+        
+        function handleAttackStart(e) {
+            e.preventDefault();
+            player.attackCooldown = 1;
+        }
+        
+        function handleAttackEnd(e) {
+            e.preventDefault();
+            player.attackCooldown = 0;
+        }
+        
+        // Панель крафта
+        const craftingPanel = document.getElementById('crafting-panel');
+        const closeCraftingButton = document.getElementById('close-crafting');
+        const craftingItems = document.querySelectorAll('.crafting-item');
+        
+        closeCraftingButton.addEventListener('click', () => {
+            craftingPanel.style.display = 'none';
+        });
+        
+        craftingItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const itemId = item.dataset.item;
+                craftItem(itemId);
+            });
+        });
+        
+        // Функция крафта предмета
+        function craftItem(itemId) {
+            const item = items[itemId];
+            let canCraft = true;
+            
+            // Проверяем рецепт (упрощенная версия)
+            if (itemId === 'sword') {
+                if (!hasItem('wood', 5)) {
+                    canCraft = false;
+                    addToCombatLog("Не хватает материалов для крафта меча!");
+                }
+            } else if (itemId === 'armor') {
+                if (!hasItem('wood', 10) || !hasItem('stone', 5)) {
+                    canCraft = false;
+                    addToCombatLog("Не хватает материалов для крафта брони!");
+                }
+            } else if (itemId === 'pickaxe') {
+                if (!hasItem('wood', 3) || !hasItem('stone', 2)) {
+                    canCraft = false;
+                    addToCombatLog("Не хватает материалов для крафта кирки!");
+                }
+            }
+            
+            if (canCraft) {
+                // Удаляем материалы
+                if (itemId === 'sword') {
+                    removeItem('wood', 5);
+                } else if (itemId === 'armor') {
+                    removeItem('wood', 10);
+                    removeItem('stone', 5);
+                } else if (itemId === 'pickaxe') {
+                    removeItem('wood', 3);
+                    removeItem('stone', 2);
+                }
+                
+                // Добавляем предмет в инвентарь
+                addItemToInventory(itemId);
+                addToCombatLog(`Создан предмет: ${item.name}`);
+            }
+        }
+        
+        // Проверка наличия предметов в инвентаре
+        function hasItem(itemId, count = 1) {
+            let total = 0;
+            for (const item of player.inventory) {
+                if (item && item.id === itemId) {
+                    total += item.count;
+                    if (total >= count) return true;
+                }
+            }
+            return false;
+        }
+        
+        // Удаление предметов из инвентаря
+        function removeItem(itemId, count = 1) {
+            for (let i = 0; i < player.inventory.length; i++) {
+                const item = player.inventory[i];
+                if (item && item.id === itemId) {
+                    if (item.count > count) {
+                        item.count -= count;
+                        count = 0;
+                    } else {
+                        count -= item.count;
+                        player.inventory[i] = null;
+                    }
+                    
+                    if (count <= 0) break;
+                }
+            }
+            updateInventoryUI();
+        }
+        
+        // Добавление предмета в инвентарь
+        function addItemToInventory(itemId, count = 1) {
+            // Проверяем, есть ли уже такой предмет в инвентаре
+            for (let i = 0; i < player.inventory.length; i++) {
+                const item = player.inventory[i];
+                if (item && item.id === itemId) {
+                    item.count += count;
+                    updateInventoryUI();
+                    return;
+                }
+            }
+            
+            // Ищем пустой слот
+            for (let i = 0; i < player.inventory.length; i++) {
+                if (player.inventory[i] === null) {
+                    player.inventory[i] = { id: itemId, count: count };
+                    updateInventoryUI();
+                    return;
+                }
+            }
+            
+            // Нет свободных слотов
+            addToCombatLog("Инвентарь полон!");
+        }
+        
+        // Обновление UI инвентаря
+        function updateInventoryUI() {
+            const slots = document.querySelectorAll('.inventory-slot');
+            slots.forEach((slot, index) => {
+                slot.innerHTML = '';
+                const item = player.inventory[index];
+                
+                if (item) {
+                    const itemData = items[item.id];
+                    
+                    // Создаем элемент для отображения предмета
+                    const itemElement = document.createElement('div');
+                    itemElement.style.textAlign = 'center';
+                    
+                    if (itemData.img && itemData.img.complete) {
+                        const img = document.createElement('img');
+                        img.src = itemData.img.src;
+                        img.style.width = '40px';
+                        img.style.height = '40px';
+                        itemElement.appendChild(img);
+                    } else {
+                        const colorBox = document.createElement('div');
+                        colorBox.style.width = '40px';
+                        colorBox.style.height = '40px';
+                        colorBox.style.backgroundColor = itemData.color;
+                        itemElement.appendChild(colorBox);
+                    }
+                    
+                    // Добавляем количество, если больше 1
+                    if (item.count > 1) {
+                        const countElement = document.createElement('div');
+                        countElement.className = 'item-count';
+                        countElement.textContent = item.count;
+                        itemElement.appendChild(countElement);
+                    }
+                    
+                    slot.appendChild(itemElement);
+                    
+                    // Добавляем обработчик клика для использования/экипировки
+                    slot.addEventListener('click', () => useItem(index));
+                }
+            });
+        }
+        
+        // Использование предмета
+        function useItem(slotIndex) {
+            const item = player.inventory[slotIndex];
+            if (!item) return;
+            
+            const itemData = items[item.id];
+            
+            switch (itemData.type) {
+                case 'weapon':
+                    // Экипировать оружие
+                    player.equipped.weapon = item.id;
+                    addToCombatLog(`Экипирован: ${itemData.name}`);
+                    break;
+                    
+                case 'armor':
+                    // Экипировать броню
+                    player.equipped.armor = item.id;
+                    addToCombatLog(`Экипирована: ${itemData.name}`);
+                    break;
+                    
+                case 'tool':
+                    // Использовать инструмент (никакого эффекта, просто сообщение)
+                    addToCombatLog(`Использован: ${itemData.name}`);
+                    break;
+                    
+                case 'resource':
+                    // Ресурсы нельзя использовать
+                    addToCombatLog(`${itemData.name} можно использовать только для крафта`);
+                    break;
+            }
+            
+            updateStatsUI();
+        }
+        
+        // Обновление статистики игрока
+        function updateStatsUI() {
+            document.getElementById('level').textContent = player.level;
+            document.getElementById('health').textContent = player.health;
+            document.getElementById('max-health').textContent = player.maxHealth;
+            document.getElementById('xp').textContent = player.xp;
+            document.getElementById('next-level-xp').textContent = player.nextLevelXp;
+            document.getElementById('xp-bar-fill').style.width = `${(player.xp / player.nextLevelXp) * 100}%`;
+            
+            // Рассчитываем атаку и защиту с учетом экипировки
+            let attack = player.attack;
+            let defense = player.defense;
+            
+            if (player.equipped.weapon) {
+                attack += items[player.equipped.weapon].attack;
+            }
+            
+            if (player.equipped.armor) {
+                defense += items[player.equipped.armor].defense;
+            }
+            
+            document.getElementById('attack-skill').textContent = attack;
+            document.getElementById('defense-skill').textContent = defense;
+            document.getElementById('mining-skill').textContent = player.mining;
+        }
+        
+        // Добавление сообщения в лог боя
+        function addToCombatLog(message) {
+            const log = document.getElementById('combat-log');
+            const entry = document.createElement('div');
+            entry.textContent = message;
+            log.appendChild(entry);
+            
+            // Автопрокрутка вниз
+            log.scrollTop = log.scrollHeight;
+            
+            // Ограничение количества сообщений
+            if (log.children.length > 10) {
+                log.removeChild(log.children[0]);
+            }
+        }
+        
+        // Создание моба (слизня)
+        function createSlime(x, y) {
+            return {
+                x: x,
+                y: y,
+                width: 40,
+                height: 40,
+                speed: 2,
+                health: 30,
+                maxHealth: 30,
+                damage: 5,
+                attackCooldown: 0,
+                type: 'slime',
+                target: null,
+                direction: { x: 0, y: 1 },
+                xpValue: 10
+            };
+        }
+        
+        // Создание ресурса
+        function createResource(x, y, type) {
+            return {
+                x: x,
+                y: y,
+                width: 30,
+                height: 30,
+                type: type,
+                health: 10,
+                respawnTime: 10000, // 10 секунд
+                respawnTimer: 0,
+                active: true
+            };
+        }
+        
+        // Создание шара опыта
+        function createXPOrb(x, y, amount) {
+            return {
+                x: x,
+                y: y,
+                width: 15,
+                height: 15,
+                amount: amount,
+                collected: false
+            };
+        }
+        
+        // Проверка столкновений
+        function checkCollision(obj1, obj2) {
+            return obj1.x < obj2.x + obj2.width &&
+                   obj1.x + obj1.width > obj2.x &&
+                   obj1.y < obj2.y + obj2.height &&
+                   obj1.y + obj1.height > obj2.y;
+        }
+        
+        // Расстояние между двумя объектами
+        function distance(obj1, obj2) {
+            const dx = obj1.x - obj2.x;
+            const dy = obj1.y - obj2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        
+        // Атака игрока
+        function playerAttack() {
+            const now = Date.now();
+            if (now - player.lastAttackTime < 500) return; // Задержка между атаками
+            
+            player.lastAttackTime = now;
+            
+            // Рассчитываем урон с учетом экипировки
+            let damage = player.attack;
+            if (player.equipped.weapon) {
+                damage += items[player.equipped.weapon].attack;
+            }
+            
+            // Проверяем все мобы в радиусе атаки
+            let hitAny = false;
+            for (const mob of mobs) {
+                if (distance(player, mob) < player.attackRange) {
+                    // Наносим урон мобу
+                    mob.health -= damage;
+                    addToCombatLog(`Вы нанесли ${damage} урона слизню!`);
+                    hitAny = true;
+                    
+                    // Проверяем, убит ли моб
+                    if (mob.health <= 0) {
+                        // Удаляем моба и добавляем опыт
+                        const index = mobs.indexOf(mob);
+                        if (index !== -1) mobs.splice(index, 1);
+                        
+                        // Создаем шары опыта
+                        for (let i = 0; i < 3; i++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const dist = 20 + Math.random() * 20;
+                            xpOrbs.push(createXPOrb(
+                                mob.x + Math.cos(angle) * dist,
+                                mob.y + Math.sin(angle) * dist,
+                                Math.floor(mob.xpValue / 3)
+                            ));
+                        }
+                        
+                        // С шансом 30% выпадает шар слизи
+                        if (Math.random() < 0.3) {
+                            xpOrbs.push(createXPOrb(
+                                mob.x,
+                                mob.y,
+                                0 // Опыта нет, это предмет
+                            ));
+                            // Добавляем предмет в последний шар
+                            xpOrbs[xpOrbs.length - 1].item = 'slimeBall';
+                        }
+                        
+                        addToCombatLog("Слизень убит!");
+                    }
+                }
+            }
+            
+            if (!hitAny) {
+                addToCombatLog("Нет целей в радиусе атаки!");
+            }
+        }
+        
+        // Добыча ресурса
+        function mineResource(resource) {
+            // Рассчитываем эффективность добычи с учетом инструментов
+            let miningPower = 1;
+            if (player.equipped.weapon === 'pickaxe') {
+                miningPower += items.pickaxe.mining;
+            }
+            
+            resource.health -= miningPower;
+            
+            if (resource.health <= 0) {
+                // Ресурс добыт
+                resource.active = false;
+                resource.respawnTimer = resource.respawnTime;
+                
+                // Добавляем ресурс в инвентарь
+                addItemToInventory(resource.type, 1);
+                addToCombatLog(`Вы добыли: ${items[resource.type].name}`);
+                
+                // Добавляем опыт добычи
+                addXP(2);
+            }
+        }
+        
+        // Добавление опыта
+        function addXP(amount) {
+            player.xp += amount;
+            
+            // Проверяем уровень
+            if (player.xp >= player.nextLevelXp) {
+                player.level++;
+                player.xp -= player.nextLevelXp;
+                player.nextLevelXp = Math.floor(player.nextLevelXp * 1.5);
+                player.maxHealth += 10;
+                player.health = player.maxHealth;
+                player.attack += 2;
+                player.defense += 1;
+                player.mining += 0.5;
+                
+                addToCombatLog(`Поздравляем! Вы достигли уровня ${player.level}!`);
+            }
+            
+            updateStatsUI();
         }
         
         // Игровой цикл
@@ -359,43 +885,257 @@
                 // Границы поля
                 player.x = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, player.x));
                 player.y = Math.max(player.height / 2, Math.min(canvas.height - player.height / 2, player.y));
+            }
+            
+            // Спавн ресурсов
+            if (Math.random() < RESOURCE_SPAWN_RATE && resources.length < 20) {
+                const type = RESOURCE_TYPES[Math.floor(Math.random() * RESOURCE_TYPES.length)];
+                const x = Math.random() * (canvas.width - 60) + 30;
+                const y = Math.random() * (canvas.height - 60) + 30;
                 
-                // Отправляем обновление позиции (но не чаще чем раз в 100мс)
-                const now = Date.now();
-                if (now - joystick.lastUpdate > 100) {
-                    sendPlayerData();
-                    joystick.lastUpdate = now;
+                // Проверяем, чтобы ресурс не спавнился слишком близко к игроку
+                if (distance({ x, y }, player) > 100) {
+                    resources.push(createResource(x, y, type));
                 }
             }
             
-            // Отрисовка других игроков
-            for (const id in otherPlayers) {
-                const otherPlayer = otherPlayers[id];
-                ctx.fillStyle = otherPlayer.color;
-                ctx.fillRect(otherPlayer.x - player.width / 2, otherPlayer.y - player.height / 2, player.width, player.height);
+            // Спавн мобов
+            if (Math.random() < MOB_SPAWN_RATE && mobs.length < 10) {
+                const x = Math.random() * (canvas.width - 60) + 30;
+                const y = Math.random() * (canvas.height - 60) + 30;
                 
-                // Отрисовка имени игрока
-                ctx.fillStyle = 'white';
-                ctx.font = '16px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(otherPlayer.name, otherPlayer.x, otherPlayer.y - player.height / 2 - 10);
+                // Проверяем, чтобы моб не спавнился слишком близко к игроку
+                if (distance({ x, y }, player) > 150) {
+                    mobs.push(createSlime(x, y));
+                }
             }
             
-            // Отрисовка текущего игрока
-            ctx.fillStyle = player.color;
-            ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
+            // Обновление ресурсов
+            for (const resource of resources) {
+                if (!resource.active) {
+                    resource.respawnTimer -= 16; // Примерно 60 FPS
+                    if (resource.respawnTimer <= 0) {
+                        resource.active = true;
+                        resource.health = 10;
+                    }
+                    continue;
+                }
+                
+                // Отрисовка ресурса
+                ctx.fillStyle = items[resource.type].color;
+                ctx.fillRect(resource.x - resource.width / 2, resource.y - resource.height / 2, resource.width, resource.height);
+                
+                // Проверка сбора ресурса
+                if (distance(player, resource) < 50 && joystick.active) {
+                    mineResource(resource);
+                }
+            }
             
-            // Отрисовка имени текущего игрока
+            // Обновление мобов
+            for (const mob of mobs) {
+                // ИИ мобов: преследование игрока
+                const distToPlayer = distance(mob, player);
+                
+                if (distToPlayer < 200) {
+                    // Преследование игрока
+                    mob.target = player;
+                    
+                    const angle = Math.atan2(player.y - mob.y, player.x - mob.x);
+                    mob.direction = { x: Math.cos(angle), y: Math.sin(angle) };
+                    mob.x += mob.direction.x * mob.speed;
+                    mob.y += mob.direction.y * mob.speed;
+                } else {
+                    mob.target = null;
+                    // Случайное блуждание
+                    if (Math.random() < 0.02) {
+                        mob.direction = {
+                            x: Math.random() * 2 - 1,
+                            y: Math.random() * 2 - 1
+                        };
+                    }
+                    
+                    mob.x += mob.direction.x * mob.speed * 0.5;
+                    mob.y += mob.direction.y * mob.speed * 0.5;
+                }
+                
+                // Границы поля для мобов
+                mob.x = Math.max(mob.width / 2, Math.min(canvas.width - mob.width / 2, mob.x));
+                mob.y = Math.max(mob.height / 2, Math.min(canvas.height - mob.height / 2, mob.y));
+                
+                // Отрисовка моба
+                if (textures.slime.complete) {
+                    ctx.drawImage(textures.slime, mob.x - mob.width / 2, mob.y - mob.height / 2, mob.width, mob.height);
+                } else {
+                    ctx.fillStyle = '#00FF00';
+                    ctx.beginPath();
+                    ctx.ellipse(mob.x, mob.y, mob.width / 2, mob.height / 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Отрисовка имени и здоровья
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText("Слизень", mob.x, mob.y - mob.height / 2 - 15);
+                
+                // Полоска здоровья
+                ctx.fillStyle = 'red';
+                ctx.fillRect(mob.x - mob.width / 2, mob.y - mob.height / 2 - 10, mob.width, 3);
+                ctx.fillStyle = 'green';
+                ctx.fillRect(mob.x - mob.width / 2, mob.y - mob.height / 2 - 10, mob.width * (mob.health / mob.maxHealth), 3);
+                
+                // Атака моба
+                if (mob.target && distToPlayer < 40) {
+                    if (mob.attackCooldown <= 0) {
+                        // Рассчитываем урон с учетом защиты игрока
+                        let damage = mob.damage;
+                        if (player.equipped.armor) {
+                            damage -= items[player.equipped.armor].defense;
+                        }
+                        damage = Math.max(1, damage); // Минимальный урон 1
+                        
+                        player.health -= damage;
+                        addToCombatLog(`Слизень нанес вам ${damage} урона!`);
+                        mob.attackCooldown = 1000; // 1 секунда перезарядки
+                        
+                        updateStatsUI();
+                        
+                        // Проверяем смерть игрока
+                        if (player.health <= 0) {
+                            player.health = player.maxHealth;
+                            player.x = canvas.width / 2;
+                            player.y = canvas.height / 2;
+                            addToCombatLog("Вы умерли! Воскрешение...");
+                            updateStatsUI();
+                        }
+                    } else {
+                        mob.attackCooldown -= 16;
+                    }
+                }
+            }
+            
+            // Обновление шаров опыта
+            for (let i = xpOrbs.length - 1; i >= 0; i--) {
+                const orb = xpOrbs[i];
+                
+                // Отрисовка шара
+                ctx.fillStyle = orb.item ? '#FF00FF' : '#00FF00';
+                ctx.beginPath();
+                ctx.arc(orb.x, orb.y, orb.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Проверка сбора игроком
+                if (distance(player, orb) < 30 && !orb.collected) {
+                    orb.collected = true;
+                    
+                    if (orb.item) {
+                        addItemToInventory(orb.item, 1);
+                        addToCombatLog(`Вы получили: ${items[orb.item].name}`);
+                    } else {
+                        addXP(orb.amount);
+                        addToCombatLog(`+${orb.amount} опыта`);
+                    }
+                    
+                    xpOrbs.splice(i, 1);
+                }
+            }
+            
+            // Атака игрока
+            if (player.attackCooldown > 0) {
+                playerAttack();
+                player.attackCooldown = 0;
+            }
+            
+            // Отрисовка игрока
+            if (player.useImage && playerImage.complete) {
+                ctx.save();
+                // Поворачиваем игрока в направлении движения
+                if (joystick.active || player.attackCooldown > 0) {
+                    const angle = Math.atan2(player.direction.y, player.direction.x);
+                    ctx.translate(player.x, player.y);
+                    ctx.rotate(angle + Math.PI / 2);
+                    ctx.drawImage(playerImage, -player.width / 2, -player.height / 2, player.width, player.height);
+                    ctx.restore();
+                } else {
+                    ctx.drawImage(playerImage, player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
+                }
+            } else {
+                ctx.fillStyle = player.color;
+                ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
+            }
+            
+            // Отрисовка имени игрока
             ctx.fillStyle = 'white';
             ctx.font = '16px Arial';
             ctx.textAlign = 'center';
             ctx.fillText(player.name, player.x, player.y - player.height / 2 - 10);
             
+            // Отрисовка радиуса атаки при атаке
+            if (player.attackCooldown > 0) {
+                ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.attackRange, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
             requestAnimationFrame(gameLoop);
         }
         
+        // Инициализация инвентаря
+        updateInventoryUI();
+        updateStatsUI();
+        
+        // Добавляем начальные предметы
+        addItemToInventory('wood', 3);
+        addItemToInventory('stone', 2);
+        
         // Запуск игры
         gameLoop();
+        
+        // Обработчик клавиатуры для тестирования на ПК
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowUp':
+                    joystick.moveY = -1;
+                    player.direction = { x: 0, y: -1 };
+                    break;
+                case 'ArrowDown':
+                    joystick.moveY = 1;
+                    player.direction = { x: 0, y: 1 };
+                    break;
+                case 'ArrowLeft':
+                    joystick.moveX = -1;
+                    player.direction = { x: -1, y: 0 };
+                    break;
+                case 'ArrowRight':
+                    joystick.moveX = 1;
+                    player.direction = { x: 1, y: 0 };
+                    break;
+                case ' ':
+                    player.attackCooldown = 1;
+                    break;
+                case 'c':
+                    craftingPanel.style.display = 'block';
+                    break;
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'ArrowDown':
+                    joystick.moveY = 0;
+                    break;
+                case 'ArrowLeft':
+                case 'ArrowRight':
+                    joystick.moveX = 0;
+                    break;
+                case ' ':
+                    player.attackCooldown = 0;
+                    break;
+            }
+        });
     </script>
 </body>
 </html>
