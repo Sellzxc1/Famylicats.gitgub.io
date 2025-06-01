@@ -165,6 +165,74 @@
             line-height: 20px;
             font-size: 14px;
         }
+        
+        #death-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            display: none;
+            pointer-events: auto;
+        }
+        
+        #death-message {
+            font-size: 48px;
+            color: #ff5555;
+            margin-bottom: 30px;
+        }
+        
+        #respawn-button {
+            padding: 15px 30px;
+            font-size: 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        #respawn-button:hover {
+            background-color: #45a049;
+        }
+        
+        #attack-button {
+            position: absolute;
+            bottom: 100px;
+            right: 50px;
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 0, 0, 0.5);
+            border-radius: 50%;
+            pointer-events: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            border: 3px solid white;
+        }
+        
+        .slime-hp-bar {
+            position: absolute;
+            width: 50px;
+            height: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .slime-hp-fill {
+            height: 100%;
+            width: 100%;
+            background-color: #55ff55;
+        }
     </style>
 </head>
 <body>
@@ -191,8 +259,15 @@
                 </div>
             </div>
             
+            <div id="attack-button">⚔️</div>
+            
             <div id="inventory">
                 <!-- Inventory slots will be added by JavaScript -->
+            </div>
+            
+            <div id="death-screen">
+                <div id="death-message">Вы умерли</div>
+                <button id="respawn-button">Возродиться</button>
             </div>
         </div>
     </div>
@@ -203,12 +278,17 @@
         const NIGHT_DURATION = 6 * 60 * 1000; // 6 minutes in milliseconds
         const RESOURCE_RESPAWN_TIME = 30 * 1000; // 30 seconds in milliseconds
         const SLIME_SPAWN_RATE = 3000; // 3 seconds during night
+        const WORLD_WIDTH = 3000; // Larger world width
+        const WORLD_HEIGHT = 2000; // Larger world height
+        const ATTACK_COOLDOWN = 1000; // 1 second cooldown between attacks
+        const ATTACK_RANGE = 100; // Attack range in pixels
+        const ATTACK_DAMAGE = 10; // Damage per attack
         
         // Game state
         const gameState = {
             player: {
-                x: 400,
-                y: 300,
+                x: WORLD_WIDTH / 2,
+                y: WORLD_HEIGHT / 2,
                 width: 40,
                 height: 60,
                 speed: 3,
@@ -218,7 +298,8 @@
                     wood: 0,
                     stone: 0
                 },
-                selectedItem: null
+                selectedItem: null,
+                lastAttack: 0
             },
             resources: {
                 trees: [],
@@ -234,10 +315,18 @@
                 left: false,
                 right: false,
                 up: false,
-                down: false
+                down: false,
+                attacking: false
             },
             lastResourceSpawn: 0,
-            lastSlimeSpawn: 0
+            lastSlimeSpawn: 0,
+            camera: {
+                x: 0,
+                y: 0,
+                width: window.innerWidth,
+                height: window.innerHeight
+            },
+            isPlayerDead: false
         };
         
         // Load game state from localStorage
@@ -287,6 +376,8 @@
             function resizeCanvas() {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
+                gameState.camera.width = canvas.width;
+                gameState.camera.height = canvas.height;
             }
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
@@ -305,22 +396,15 @@
             textures.tree.src = 'assets/tree.png';
             textures.rock.src = 'assets/rock.png';
             
-            // Create a simple green platform texture
-            const platformCanvas = document.createElement('canvas');
-            platformCanvas.width = 64;
-            platformCanvas.height = 64;
-            const platformCtx = platformCanvas.getContext('2d');
-            platformCtx.fillStyle = '#4CAF50';
-            platformCtx.fillRect(0, 0, 64, 64);
-            platformCtx.fillStyle = '#3E8E41';
-            for (let i = 0; i < 64; i += 8) {
-                platformCtx.fillRect(0, i, 64, 2);
-            }
-            textures.platform.src = platformCanvas.toDataURL();
+            // Create a grass platform texture
+            textures.platform.onload = function() {
+                // Texture loaded
+            };
+            textures.platform.src = 'trava.png';
             
             // Initialize resources if none exist
             if (gameState.resources.trees.length === 0) {
-                spawnInitialResources(canvas.width, canvas.height);
+                spawnInitialResources(WORLD_WIDTH, WORLD_HEIGHT);
             }
             
             // Initialize inventory UI
@@ -412,6 +496,9 @@
                     case 's':
                         gameState.controls.down = true;
                         break;
+                    case ' ':
+                        gameState.controls.attacking = true;
+                        break;
                 }
             });
             
@@ -433,7 +520,54 @@
                     case 's':
                         gameState.controls.down = false;
                         break;
+                    case ' ':
+                        gameState.controls.attacking = false;
+                        break;
                 }
+            });
+            
+            // Attack button
+            const attackButton = document.getElementById('attack-button');
+            attackButton.addEventListener('mousedown', () => {
+                gameState.controls.attacking = true;
+            });
+            attackButton.addEventListener('touchstart', () => {
+                gameState.controls.attacking = true;
+            });
+            attackButton.addEventListener('mouseup', () => {
+                gameState.controls.attacking = false;
+            });
+            attackButton.addEventListener('touchend', () => {
+                gameState.controls.attacking = false;
+            });
+            
+            // Click handler for trees
+            canvas.addEventListener('click', (e) => {
+                if (gameState.isPlayerDead) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left + gameState.camera.x;
+                const clickY = e.clientY - rect.top + gameState.camera.y;
+                
+                // Check if clicked on a tree
+                for (const tree of gameState.resources.trees) {
+                    if (!tree.collected && 
+                        clickX >= tree.x && clickX <= tree.x + tree.width &&
+                        clickY >= tree.y && clickY <= tree.y + tree.height) {
+                        tree.collected = true;
+                        tree.respawnTime = Date.now() + RESOURCE_RESPAWN_TIME;
+                        gameState.player.inventory.wood++;
+                        updateInventoryUI();
+                        break;
+                    }
+                }
+            });
+            
+            // Respawn button
+            document.getElementById('respawn-button').addEventListener('click', () => {
+                gameState.player.health = gameState.player.maxHealth;
+                gameState.isPlayerDead = false;
+                document.getElementById('death-screen').style.display = 'none';
             });
             
             // Game loop
@@ -450,291 +584,9 @@
         }
         
         function spawnInitialResources(width, height) {
+            const MIN_DISTANCE_BETWEEN_TREES = 150;
+            const MIN_DISTANCE_BETWEEN_ROCKS = 100;
+            const TREE_ROCK_MIN_DISTANCE = 120;
+            
             // Spawn trees
-            for (let i = 0; i < 10; i++) {
-                gameState.resources.trees.push({
-                    x: Math.random() * (width - 100) + 50,
-                    y: Math.random() * (height - 200) + 100,
-                    width: 60,
-                    height: 80,
-                    collected: false,
-                    respawnTime: 0
-                });
-            }
-            
-            // Spawn rocks
-            for (let i = 0; i < 10; i++) {
-                gameState.resources.rocks.push({
-                    x: Math.random() * (width - 100) + 50,
-                    y: Math.random() * (height - 200) + 100,
-                    width: 50,
-                    height: 40,
-                    collected: false,
-                    respawnTime: 0
-                });
-            }
-        }
-        
-        function initInventoryUI() {
-            const inventory = document.getElementById('inventory');
-            inventory.innerHTML = '';
-            
-            // Create slots for wood and stone
-            createInventorySlot('wood', 'assets/tree.png');
-            createInventorySlot('stone', 'assets/rock.png');
-            
-            updateInventoryUI();
-        }
-        
-        function createInventorySlot(itemType, iconSrc) {
-            const inventory = document.getElementById('inventory');
-            const slot = document.createElement('div');
-            slot.className = 'inventory-slot';
-            slot.dataset.item = itemType;
-            
-            const img = document.createElement('img');
-            img.src = iconSrc;
-            img.alt = itemType;
-            
-            const count = document.createElement('div');
-            count.className = 'count';
-            count.textContent = '0';
-            count.id = `${itemType}-count`;
-            
-            slot.appendChild(img);
-            slot.appendChild(count);
-            inventory.appendChild(slot);
-            
-            // Add click handler to select item
-            slot.addEventListener('click', () => {
-                if (gameState.player.inventory[itemType] > 0) {
-                    gameState.player.selectedItem = itemType;
-                    document.querySelectorAll('.inventory-slot').forEach(s => {
-                        s.style.borderColor = '#555';
-                    });
-                    slot.style.borderColor = 'gold';
-                }
-            });
-        }
-        
-        function updateInventoryUI() {
-            document.getElementById('wood-count').textContent = gameState.player.inventory.wood;
-            document.getElementById('stone-count').textContent = gameState.player.inventory.stone;
-            
-            // Update selected item highlight
-            document.querySelectorAll('.inventory-slot').forEach(slot => {
-                slot.style.borderColor = slot.dataset.item === gameState.player.selectedItem ? 'gold' : '#555';
-            });
-        }
-        
-        function update() {
-            const now = Date.now();
-            const elapsed = now - gameState.time.cycleStart;
-            
-            // Update day/night cycle
-            if (gameState.time.isDay) {
-                if (elapsed >= DAY_DURATION) {
-                    gameState.time.isDay = false;
-                    gameState.time.cycleStart = now;
-                    document.getElementById('time-icon').textContent = '🌙';
-                    document.getElementById('time-text').textContent = 'Night';
-                }
-            } else {
-                if (elapsed >= NIGHT_DURATION) {
-                    gameState.time.isDay = true;
-                    gameState.time.cycleStart = now;
-                    document.getElementById('time-icon').textContent = '☀️';
-                    document.getElementById('time-text').textContent = 'Day';
-                }
-                
-                // Spawn slimes at night
-                if (now - gameState.lastSlimeSpawn > SLIME_SPAWN_RATE) {
-                    spawnSlime();
-                    gameState.lastSlimeSpawn = now;
-                }
-            }
-            
-            // Update time display
-            const timeLeft = gameState.time.isDay ? 
-                Math.max(0, DAY_DURATION - elapsed) : 
-                Math.max(0, NIGHT_DURATION - elapsed);
-            const minutes = Math.floor(timeLeft / 60000);
-            const seconds = Math.floor((timeLeft % 60000) / 1000);
-            document.getElementById('time-display').textContent = `Time left: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
-            // Update night overlay opacity
-            const nightOpacity = gameState.time.isDay ? 
-                0 : 
-                Math.min(0.7, (elapsed / NIGHT_DURATION) * 0.7);
-            document.getElementById('night-overlay').style.opacity = nightOpacity;
-            
-            // Update player position
-            const player = gameState.player;
-            if (gameState.controls.left) player.x -= player.speed;
-            if (gameState.controls.right) player.x += player.speed;
-            if (gameState.controls.up) player.y -= player.speed;
-            if (gameState.controls.down) player.y += player.speed;
-            
-            // Keep player in bounds
-            const canvas = document.getElementById('game-canvas');
-            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
-            player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
-            
-            // Update slimes
-            updateSlimes();
-            
-            // Check for resource collection
-            checkResourceCollection();
-            
-            // Respawn resources
-            if (now - gameState.lastResourceSpawn > 1000) { // Check every second
-                respawnResources(now);
-                gameState.lastResourceSpawn = now;
-            }
-            
-            // Update health UI
-            document.getElementById('health-fill').style.width = `${(player.health / player.maxHealth) * 100}%`;
-            document.getElementById('health-text').textContent = `${Math.round(player.health)}/${player.maxHealth}`;
-        }
-        
-        function spawnSlime() {
-            const canvas = document.getElementById('game-canvas');
-            const player = gameState.player;
-            
-            // Spawn slime at edge of screen
-            let x, y;
-            if (Math.random() < 0.5) {
-                x = Math.random() < 0.5 ? -40 : canvas.width + 40;
-                y = Math.random() * canvas.height;
-            } else {
-                x = Math.random() * canvas.width;
-                y = Math.random() < 0.5 ? -40 : canvas.height + 40;
-            }
-            
-            gameState.slimes.push({
-                x: x,
-                y: y,
-                width: 50,
-                height: 40,
-                speed: 1 + Math.random(),
-                health: 30
-            });
-        }
-        
-        function updateSlimes() {
-            const player = gameState.player;
-            
-            for (let i = gameState.slimes.length - 1; i >= 0; i--) {
-                const slime = gameState.slimes[i];
-                
-                // Move toward player
-                const dx = player.x + player.width / 2 - (slime.x + slime.width / 2);
-                const dy = player.y + player.height / 2 - (slime.y + slime.height / 2);
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance > 0) {
-                    slime.x += (dx / distance) * slime.speed;
-                    slime.y += (dy / distance) * slime.speed;
-                }
-                
-                // Check collision with player
-                if (checkCollision(player, slime)) {
-                    player.health -= 0.5;
-                    if (player.health <= 0) {
-                        player.health = 0;
-                        // Game over logic could go here
-                    }
-                }
-                
-                // Remove slimes that are too far away (to prevent infinite slimes)
-                const canvas = document.getElementById('game-canvas');
-                if (slime.x < -100 || slime.x > canvas.width + 100 || 
-                    slime.y < -100 || slime.y > canvas.height + 100) {
-                    gameState.slimes.splice(i, 1);
-                }
-            }
-        }
-        
-        function checkResourceCollection() {
-            const player = gameState.player;
-            
-            // Check trees
-            for (const tree of gameState.resources.trees) {
-                if (!tree.collected && checkCollision(player, tree)) {
-                    tree.collected = true;
-                    tree.respawnTime = Date.now() + RESOURCE_RESPAWN_TIME;
-                    gameState.player.inventory.wood++;
-                    updateInventoryUI();
-                }
-            }
-            
-            // Check rocks
-            for (const rock of gameState.resources.rocks) {
-                if (!rock.collected && checkCollision(player, rock)) {
-                    rock.collected = true;
-                    rock.respawnTime = Date.now() + RESOURCE_RESPAWN_TIME;
-                    gameState.player.inventory.stone++;
-                    updateInventoryUI();
-                }
-            }
-        }
-        
-        function respawnResources(now) {
-            // Respawn trees
-            for (const tree of gameState.resources.trees) {
-                if (tree.collected && now >= tree.respawnTime) {
-                    tree.collected = false;
-                }
-            }
-            
-            // Respawn rocks
-            for (const rock of gameState.resources.rocks) {
-                if (rock.collected && now >= rock.respawnTime) {
-                    rock.collected = false;
-                }
-            }
-        }
-        
-        function checkCollision(obj1, obj2) {
-            return obj1.x < obj2.x + obj2.width &&
-                   obj1.x + obj1.width > obj2.x &&
-                   obj1.y < obj2.y + obj2.height &&
-                   obj1.y + obj1.height > obj2.y;
-        }
-        
-        function render(ctx, width, height, textures) {
-            // Clear canvas
-            ctx.clearRect(0, 0, width, height);
-            
-            // Draw platform (ground)
-            const platformPattern = ctx.createPattern(textures.platform, 'repeat');
-            ctx.fillStyle = platformPattern;
-            ctx.fillRect(0, height - 50, width, 50);
-            
-            // Draw resources
-            for (const tree of gameState.resources.trees) {
-                if (!tree.collected) {
-                    ctx.drawImage(textures.tree, tree.x, tree.y, tree.width, tree.height);
-                }
-            }
-            
-            for (const rock of gameState.resources.rocks) {
-                if (!rock.collected) {
-                    ctx.drawImage(textures.rock, rock.x, rock.y, rock.width, rock.height);
-                }
-            }
-            
-            // Draw slimes
-            for (const slime of gameState.slimes) {
-                ctx.drawImage(textures.slime, slime.x, slime.y, slime.width, slime.height);
-            }
-            
-            // Draw player
-            ctx.drawImage(textures.player, gameState.player.x, gameState.player.y, gameState.player.width, gameState.player.height);
-        }
-        
-        // Start the game when the page loads
-        window.addEventListener('load', initGame);
-    </script>
-</body>
-</html>
+            const treeCount = 20; // More trees for larger wor
