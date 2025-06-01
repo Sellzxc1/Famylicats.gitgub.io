@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Slime Adventure - 2D MMORPG</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="world"></div>
+        <div id="player"></div>
+        <div id="mobs"></div>
+        <div id="items"></div>
+        <div id="day-night"></div>
+        
+        <div id="mobile-controls">
+            <div id="joystick" class="joystick"></div>
+            <div id="action-buttons">
+                <button id="attack-btn" class="action-btn">⚔️</button>
+                <button id="interact-btn" class="action-btn">✋</button>
+            </div>
+        </div>
+        
+        <div id="ui">
+            <div id="stats">
+                <div class="stat-bar">
+                    <span id="health">❤️ 100/100</span>
+                    <span id="xp">⭐ Lvl.1 (0/100)</span>
+                </div>
+                <div class="stat-bar">
+                    <span id="time">🌞 День</span>
+                    <span id="resources">🌲 0 | ⛏️ 0 | 🪙 0</span>
+                </div>
+            </div>
+            
+            <button id="inventory-btn">🎒</button>
+            <button id="craft-btn">⚒️</button>
+            <button id="skills-btn">📊</button>
+        </div>
+        
+        <div id="inventory" class="modal hidden">
+            <h2>Инвентарь</h2>
+            <div class="inventory-grid"></div>
+            <button class="close-btn">✖️</button>
+        </div>
+        
+        <div id="crafting" class="modal hidden">
+            <h2>Крафт</h2>
+            <div class="crafting-grid"></div>
+            <button class="close-btn">✖️</button>
+        </div>
+        
+        <div id="skills" class="modal hidden">
+            <h2>Характеристики</h2>
+            <div class="skills-list"></div>
+            <button class="close-btn">✖️</button>
+        </div>
+        
+        <div id="chat">
+            <div id="chat-messages"></div>
+            <input type="text" id="chat-input" placeholder="Напишите сообщение...">
+        </div>
+        
+        <div id="login-screen">
+            <h1>Slime Adventure</h1>
+            <input type="text" id="username-input" placeholder="Имя игрока" maxlength="16">
+            <button id="start-btn">Начать игру</button>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
