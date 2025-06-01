@@ -52,42 +52,40 @@
             top: -20px;
         }
         
-        #controls {
+        #loginOverlay {
             position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-            color: white;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
             z-index: 100;
         }
         
-        #peerIdDisplay {
-            font-weight: bold;
-            margin: 5px 0;
-            word-break: break-all;
-            max-width: 200px;
+        #loginForm {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
         }
         
-        input, button {
-            margin: 5px 0;
-            padding: 5px;
-            width: 100%;
-        }
-        
-        #status {
-            margin-top: 5px;
-            font-size: 12px;
+        #loginForm input, #loginForm button {
+            margin: 10px 0;
+            padding: 8px;
+            width: 200px;
         }
     </style>
 </head>
 <body>
-    <div id="controls">
-        <div>Ваш ID: <span id="peerIdDisplay">Загрузка...</span></div>
-        <input type="text" id="peerIdInput" placeholder="Введите ID другого игрока">
-        <button id="connectButton">Подключиться</button>
-        <div id="status">Не подключено</div>
+    <div id="loginOverlay">
+        <div id="loginForm">
+            <h2>Введите ваше имя</h2>
+            <input type="text" id="playerNameInput" placeholder="Ваше имя" maxlength="10">
+            <button id="startButton">Начать игру</button>
+        </div>
     </div>
     
     <canvas id="gameCanvas"></canvas>
@@ -95,9 +93,6 @@
         <div id="joystickKnob"></div>
     </div>
 
-    <!-- Подключаем PeerJS библиотеку -->
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-    
     <script>
         // Инициализация canvas
         const canvas = document.getElementById('gameCanvas');
@@ -111,119 +106,34 @@
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
         
-        // Игроки
-        const players = {};
-        let myPlayerId = null;
+        // Игрок
+        const player = {
+            id: null,
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            width: 50,
+            height: 50,
+            speed: 5,
+            name: "Игрок",
+            color: "#FF5722"
+        };
         
-        // Создаем случайный цвет для игрока
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
+        // Другие игроки
+        const otherPlayers = {};
         
-        // Инициализация PeerJS
-        let peer = null;
-        let conn = null;
+        // WebSocket соединение
+        let socket = null;
+        const serverUrl = "wss://your-websocket-server.com"; // Замените на ваш URL WebSocket сервера
         
-        function initializePeerJS() {
-            // Создаем Peer с случайным ID
-            peer = new Peer();
-            
-            peer.on('open', function(id) {
-                myPlayerId = id;
-                document.getElementById('peerIdDisplay').textContent = id;
-                
-                // Создаем своего игрока
-                players[id] = {
-                    x: canvas.width / 2,
-                    y: canvas.height / 2,
-                    width: 50,
-                    height: 50,
-                    speed: 5,
-                    name: "Игрок " + id.substr(0, 5),
-                    color: getRandomColor(),
-                    useImage: false
-                };
-                
-                document.getElementById('status').textContent = "Ожидание подключения...";
-            });
-            
-            peer.on('connection', function(connection) {
-                conn = connection;
-                setupConnection(conn);
-                document.getElementById('status').textContent = "Подключено к " + conn.peer.substr(0, 5);
-            });
-            
-            peer.on('error', function(err) {
-                console.error(err);
-                document.getElementById('status').textContent = "Ошибка: " + err.type;
-            });
-        }
-        
-        // Настройка обработчиков соединения
-        function setupConnection(connection) {
-            connection.on('open', function() {
-                // При подключении отправляем свое текущее состояние
-                sendPlayerData();
-            });
-            
-            connection.on('data', function(data) {
-                // Получаем данные о другом игроке и обновляем его позицию
-                if (data.type === 'playerUpdate' && data.id !== myPlayerId) {
-                    if (!players[data.id]) {
-                        players[data.id] = {
-                            ...data,
-                            color: getRandomColor(),
-                            useImage: false
-                        };
-                    } else {
-                        players[data.id].x = data.x;
-                        players[data.id].y = data.y;
-                    }
-                }
-            });
-            
-            connection.on('close', function() {
-                document.getElementById('status').textContent = "Соединение закрыто";
-                // Удаляем игрока при отключении
-                if (conn && conn.peer in players) {
-                    delete players[conn.peer];
-                }
-                conn = null;
-            });
-            
-            connection.on('error', function(err) {
-                console.error(err);
-                document.getElementById('status').textContent = "Ошибка соединения";
-            });
-        }
-        
-        // Отправка данных о своем игроке
-        function sendPlayerData() {
-            if (conn && conn.open && myPlayerId && players[myPlayerId]) {
-                conn.send({
-                    type: 'playerUpdate',
-                    id: myPlayerId,
-                    x: players[myPlayerId].x,
-                    y: players[myPlayerId].y,
-                    name: players[myPlayerId].name
-                });
-            }
-        }
-        
-        // Обработчик кнопки подключения
-        document.getElementById('connectButton').addEventListener('click', function() {
-            const peerId = document.getElementById('peerIdInput').value.trim();
-            if (peerId && peerId !== myPlayerId) {
-                conn = peer.connect(peerId);
-                setupConnection(conn);
-                document.getElementById('status').textContent = "Подключаемся к " + peerId.substr(0, 5) + "...";
-            }
-        });
+        // Загрузка текстуры игрока
+        const playerImage = new Image();
+        playerImage.src = 'player.png';
+        playerImage.onerror = function() {
+            // Если изображение не загрузилось, используем цветной прямоугольник
+            console.log("Изображение player.png не найдено, используется цветной прямоугольник");
+            player.useImage = false;
+        };
+        player.useImage = true;
         
         // Джойстик
         const joystick = {
@@ -296,45 +206,151 @@
             joystick.element.style.display = 'block';
         }
         
+        // Отрисовка игрока
+        function drawPlayer(p) {
+            if (player.useImage && playerImage.complete && p.id === player.id) {
+                ctx.drawImage(playerImage, p.x - p.width / 2, p.y - p.height / 2, p.width, p.height);
+            } else {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x - p.width / 2, p.y - p.height / 2, p.width, p.height);
+            }
+            
+            // Отрисовка имени игрока
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(p.name, p.x, p.y - p.height / 2 - 10);
+        }
+        
         // Игровой цикл
         function gameLoop() {
             // Очистка canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Движение своего игрока
-            if (joystick.active && myPlayerId && players[myPlayerId]) {
-                players[myPlayerId].x += joystick.moveX * players[myPlayerId].speed;
-                players[myPlayerId].y += joystick.moveY * players[myPlayerId].speed;
+            // Движение игрока
+            if (joystick.active) {
+                player.x += joystick.moveX * player.speed;
+                player.y += joystick.moveY * player.speed;
                 
                 // Границы поля
-                players[myPlayerId].x = Math.max(players[myPlayerId].width / 2, Math.min(canvas.width - players[myPlayerId].width / 2, players[myPlayerId].x));
-                players[myPlayerId].y = Math.max(players[myPlayerId].height / 2, Math.min(canvas.height - players[myPlayerId].height / 2, players[myPlayerId].y));
+                player.x = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, player.x));
+                player.y = Math.max(player.height / 2, Math.min(canvas.height - player.height / 2, player.y));
                 
-                // Отправляем обновление позиции
-                sendPlayerData();
+                // Отправка позиции на сервер
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({
+                        type: "position",
+                        x: player.x,
+                        y: player.y
+                    }));
+                }
             }
             
             // Отрисовка всех игроков
-            for (const playerId in players) {
-                const player = players[playerId];
-                
-                // Отрисовка игрока
-                ctx.fillStyle = player.color;
-                ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
-                
-                // Отрисовка имени игрока
-                ctx.fillStyle = 'white';
-                ctx.font = '16px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(player.name, player.x, player.y - player.height / 2 - 10);
+            drawPlayer(player);
+            for (const id in otherPlayers) {
+                drawPlayer(otherPlayers[id]);
             }
             
             requestAnimationFrame(gameLoop);
         }
         
-        // Запуск игры и инициализация PeerJS
-        initializePeerJS();
-        gameLoop();
+        // Обработчик входа в игру
+        document.getElementById('startButton').addEventListener('click', function() {
+            const nameInput = document.getElementById('playerNameInput');
+            if (nameInput.value.trim() === '') {
+                alert('Пожалуйста, введите ваше имя');
+                return;
+            }
+            
+            player.name = nameInput.value.trim().substring(0, 10);
+            document.getElementById('loginOverlay').style.display = 'none';
+            
+            // Подключение к WebSocket серверу
+            connectToServer();
+        });
+        
+        // Подключение к серверу
+        function connectToServer() {
+            // В реальном проекте замените на ваш WebSocket URL
+            // Для локального тестирования: ws://localhost:8080
+            socket = new WebSocket(serverUrl);
+            
+            socket.onopen = function() {
+                console.log("Подключено к серверу");
+                
+                // Отправляем информацию о новом игроке
+                socket.send(JSON.stringify({
+                    type: "join",
+                    name: player.name,
+                    color: player.color
+                }));
+            };
+            
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                switch(data.type) {
+                    case "init":
+                        player.id = data.id;
+                        player.x = data.x;
+                        player.y = data.y;
+                        break;
+                        
+                    case "players":
+                        // Обновляем информацию о других игроках
+                        for (const id in data.players) {
+                            if (id !== player.id) {
+                                otherPlayers[id] = data.players[id];
+                            }
+                        }
+                        break;
+                        
+                    case "join":
+                        // Новый игрок подключился
+                        if (data.id !== player.id) {
+                            otherPlayers[data.id] = {
+                                id: data.id,
+                                x: data.x,
+                                y: data.y,
+                                width: player.width,
+                                height: player.height,
+                                name: data.name,
+                                color: data.color
+                            };
+                        }
+                        break;
+                        
+                    case "position":
+                        // Обновление позиции игрока
+                        if (data.id !== player.id && otherPlayers[data.id]) {
+                            otherPlayers[data.id].x = data.x;
+                            otherPlayers[data.id].y = data.y;
+                        }
+                        break;
+                        
+                    case "leave":
+                        // Игрок отключился
+                        delete otherPlayers[data.id];
+                        break;
+                }
+            };
+            
+            socket.onclose = function() {
+                console.log("Отключено от сервера");
+                // Можно добавить переподключение
+            };
+            
+            socket.onerror = function(error) {
+                console.error("Ошибка WebSocket:", error);
+            };
+        }
+        
+        // Запуск игры после загрузки
+        window.addEventListener('load', function() {
+            // Показываем форму входа
+            document.getElementById('loginOverlay').style.display = 'flex';
+        });
     </script>
 </body>
 </html>
