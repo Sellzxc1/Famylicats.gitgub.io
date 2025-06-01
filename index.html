@@ -1,75 +1,340 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Slime Adventure - 2D MMORPG</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Мультиплеерная игра с джойстиком</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #4CAF50; /* Зеленое поле */
+            touch-action: none;
+            font-family: Arial, sans-serif;
+        }
+        
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+        }
+        
+        #joystick {
+            position: fixed;
+            bottom: 50px;
+            left: 50px;
+            width: 100px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            display: none;
+        }
+        
+        #joystickKnob {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            top: 25px;
+            left: 25px;
+        }
+        
+        .player-name {
+            position: absolute;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            font-weight: bold;
+            text-align: center;
+            width: 100px;
+            margin-left: -50px;
+            top: -20px;
+        }
+        
+        #controls {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+            z-index: 100;
+        }
+        
+        #peerIdDisplay {
+            font-weight: bold;
+            margin: 5px 0;
+            word-break: break-all;
+            max-width: 200px;
+        }
+        
+        input, button {
+            margin: 5px 0;
+            padding: 5px;
+            width: 100%;
+        }
+        
+        #status {
+            margin-top: 5px;
+            font-size: 12px;
+        }
+    </style>
 </head>
 <body>
-    <div id="game-container">
-        <div id="world"></div>
-        <div id="player"></div>
-        <div id="mobs"></div>
-        <div id="items"></div>
-        <div id="day-night"></div>
-        
-        <div id="mobile-controls">
-            <div id="joystick" class="joystick"></div>
-            <div id="action-buttons">
-                <button id="attack-btn" class="action-btn">⚔️</button>
-                <button id="interact-btn" class="action-btn">✋</button>
-            </div>
-        </div>
-        
-        <div id="ui">
-            <div id="stats">
-                <div class="stat-bar">
-                    <span id="health">❤️ 100/100</span>
-                    <span id="xp">⭐ Lvl.1 (0/100)</span>
-                </div>
-                <div class="stat-bar">
-                    <span id="time">🌞 День</span>
-                    <span id="resources">🌲 0 | ⛏️ 0 | 🪙 0</span>
-                </div>
-            </div>
-            
-            <button id="inventory-btn">🎒</button>
-            <button id="craft-btn">⚒️</button>
-            <button id="skills-btn">📊</button>
-        </div>
-        
-        <div id="inventory" class="modal hidden">
-            <h2>Инвентарь</h2>
-            <div class="inventory-grid"></div>
-            <button class="close-btn">✖️</button>
-        </div>
-        
-        <div id="crafting" class="modal hidden">
-            <h2>Крафт</h2>
-            <div class="crafting-grid"></div>
-            <button class="close-btn">✖️</button>
-        </div>
-        
-        <div id="skills" class="modal hidden">
-            <h2>Характеристики</h2>
-            <div class="skills-list"></div>
-            <button class="close-btn">✖️</button>
-        </div>
-        
-        <div id="chat">
-            <div id="chat-messages"></div>
-            <input type="text" id="chat-input" placeholder="Напишите сообщение...">
-        </div>
-        
-        <div id="login-screen">
-            <h1>Slime Adventure</h1>
-            <input type="text" id="username-input" placeholder="Имя игрока" maxlength="16">
-            <button id="start-btn">Начать игру</button>
-        </div>
+    <div id="controls">
+        <div>Ваш ID: <span id="peerIdDisplay">Загрузка...</span></div>
+        <input type="text" id="peerIdInput" placeholder="Введите ID другого игрока">
+        <button id="connectButton">Подключиться</button>
+        <div id="status">Не подключено</div>
     </div>
     
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="script.js"></script>
+    <canvas id="gameCanvas"></canvas>
+    <div id="joystick">
+        <div id="joystickKnob"></div>
+    </div>
+
+    <!-- Подключаем PeerJS библиотеку -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    
+    <script>
+        // Инициализация canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Настройка размеров canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Игроки
+        const players = {};
+        let myPlayerId = null;
+        
+        // Создаем случайный цвет для игрока
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        
+        // Инициализация PeerJS
+        let peer = null;
+        let conn = null;
+        
+        function initializePeerJS() {
+            // Создаем Peer с случайным ID
+            peer = new Peer();
+            
+            peer.on('open', function(id) {
+                myPlayerId = id;
+                document.getElementById('peerIdDisplay').textContent = id;
+                
+                // Создаем своего игрока
+                players[id] = {
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    width: 50,
+                    height: 50,
+                    speed: 5,
+                    name: "Игрок " + id.substr(0, 5),
+                    color: getRandomColor(),
+                    useImage: false
+                };
+                
+                document.getElementById('status').textContent = "Ожидание подключения...";
+            });
+            
+            peer.on('connection', function(connection) {
+                conn = connection;
+                setupConnection(conn);
+                document.getElementById('status').textContent = "Подключено к " + conn.peer.substr(0, 5);
+            });
+            
+            peer.on('error', function(err) {
+                console.error(err);
+                document.getElementById('status').textContent = "Ошибка: " + err.type;
+            });
+        }
+        
+        // Настройка обработчиков соединения
+        function setupConnection(connection) {
+            connection.on('open', function() {
+                // При подключении отправляем свое текущее состояние
+                sendPlayerData();
+            });
+            
+            connection.on('data', function(data) {
+                // Получаем данные о другом игроке и обновляем его позицию
+                if (data.type === 'playerUpdate' && data.id !== myPlayerId) {
+                    if (!players[data.id]) {
+                        players[data.id] = {
+                            ...data,
+                            color: getRandomColor(),
+                            useImage: false
+                        };
+                    } else {
+                        players[data.id].x = data.x;
+                        players[data.id].y = data.y;
+                    }
+                }
+            });
+            
+            connection.on('close', function() {
+                document.getElementById('status').textContent = "Соединение закрыто";
+                // Удаляем игрока при отключении
+                if (conn && conn.peer in players) {
+                    delete players[conn.peer];
+                }
+                conn = null;
+            });
+            
+            connection.on('error', function(err) {
+                console.error(err);
+                document.getElementById('status').textContent = "Ошибка соединения";
+            });
+        }
+        
+        // Отправка данных о своем игроке
+        function sendPlayerData() {
+            if (conn && conn.open && myPlayerId && players[myPlayerId]) {
+                conn.send({
+                    type: 'playerUpdate',
+                    id: myPlayerId,
+                    x: players[myPlayerId].x,
+                    y: players[myPlayerId].y,
+                    name: players[myPlayerId].name
+                });
+            }
+        }
+        
+        // Обработчик кнопки подключения
+        document.getElementById('connectButton').addEventListener('click', function() {
+            const peerId = document.getElementById('peerIdInput').value.trim();
+            if (peerId && peerId !== myPlayerId) {
+                conn = peer.connect(peerId);
+                setupConnection(conn);
+                document.getElementById('status').textContent = "Подключаемся к " + peerId.substr(0, 5) + "...";
+            }
+        });
+        
+        // Джойстик
+        const joystick = {
+            element: document.getElementById('joystick'),
+            knob: document.getElementById('joystickKnob'),
+            active: false,
+            startX: 0,
+            startY: 0,
+            moveX: 0,
+            moveY: 0,
+            radius: 50
+        };
+        
+        // Обработчики событий для джойстика
+        joystick.element.addEventListener('touchstart', handleJoystickStart);
+        joystick.element.addEventListener('touchmove', handleJoystickMove);
+        joystick.element.addEventListener('touchend', handleJoystickEnd);
+        
+        function handleJoystickStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = joystick.element.getBoundingClientRect();
+            
+            joystick.active = true;
+            joystick.startX = rect.left + joystick.radius;
+            joystick.startY = rect.top + joystick.radius;
+            
+            updateJoystickKnob(touch.clientX, touch.clientY);
+        }
+        
+        function handleJoystickMove(e) {
+            e.preventDefault();
+            if (!joystick.active) return;
+            
+            const touch = e.touches[0];
+            updateJoystickKnob(touch.clientX, touch.clientY);
+        }
+        
+        function handleJoystickEnd(e) {
+            e.preventDefault();
+            joystick.active = false;
+            joystick.moveX = 0;
+            joystick.moveY = 0;
+            joystick.knob.style.transform = 'translate(25px, 25px)';
+        }
+        
+        function updateJoystickKnob(touchX, touchY) {
+            const dx = touchX - joystick.startX;
+            const dy = touchY - joystick.startY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < joystick.radius) {
+                joystick.moveX = dx / joystick.radius;
+                joystick.moveY = dy / joystick.radius;
+                joystick.knob.style.transform = `translate(${dx + 25}px, ${dy + 25}px)`;
+            } else {
+                const angle = Math.atan2(dy, dx);
+                joystick.moveX = Math.cos(angle);
+                joystick.moveY = Math.sin(angle);
+                joystick.knob.style.transform = `translate(${joystick.moveX * joystick.radius + 25}px, ${joystick.moveY * joystick.radius + 25}px)`;
+            }
+        }
+        
+        // Показать джойстик на мобильных устройствах
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
+        if (isMobile()) {
+            joystick.element.style.display = 'block';
+        }
+        
+        // Игровой цикл
+        function gameLoop() {
+            // Очистка canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Движение своего игрока
+            if (joystick.active && myPlayerId && players[myPlayerId]) {
+                players[myPlayerId].x += joystick.moveX * players[myPlayerId].speed;
+                players[myPlayerId].y += joystick.moveY * players[myPlayerId].speed;
+                
+                // Границы поля
+                players[myPlayerId].x = Math.max(players[myPlayerId].width / 2, Math.min(canvas.width - players[myPlayerId].width / 2, players[myPlayerId].x));
+                players[myPlayerId].y = Math.max(players[myPlayerId].height / 2, Math.min(canvas.height - players[myPlayerId].height / 2, players[myPlayerId].y));
+                
+                // Отправляем обновление позиции
+                sendPlayerData();
+            }
+            
+            // Отрисовка всех игроков
+            for (const playerId in players) {
+                const player = players[playerId];
+                
+                // Отрисовка игрока
+                ctx.fillStyle = player.color;
+                ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
+                
+                // Отрисовка имени игрока
+                ctx.fillStyle = 'white';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(player.name, player.x, player.y - player.height / 2 - 10);
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Запуск игры и инициализация PeerJS
+        initializePeerJS();
+        gameLoop();
+    </script>
 </body>
 </html>
