@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Семья котов</title>
+    <title>ММО РПГ с джойстиком</title>
     <style>
         body {
             margin: 0;
@@ -22,10 +22,10 @@
         
         #joystick {
             position: fixed;
-            bottom: 50px;
-            left: 50px;
-            width: 100px;
-            height: 100px;
+            bottom: 20px;
+            left: 20px;
+            width: 80px;
+            height: 80px;
             background-color: rgba(0, 0, 0, 0.2);
             border-radius: 50%;
             display: none;
@@ -33,12 +33,12 @@
         
         #joystickKnob {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             background-color: rgba(255, 255, 255, 0.5);
             border-radius: 50%;
-            top: 25px;
-            left: 25px;
+            top: 20px;
+            left: 20px;
         }
         
         .player-name {
@@ -69,10 +69,10 @@
         
         #inventory {
             position: fixed;
-            bottom: 50px;
+            bottom: 20px;
             right: 20px;
-            width: 300px;
-            height: 100px;
+            width: 250px;
+            height: 80px;
             background-color: rgba(0, 0, 0, 0.5);
             border-radius: 10px;
             display: flex;
@@ -81,8 +81,8 @@
         }
         
         .inventory-slot {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             margin-right: 10px;
             background-color: rgba(255, 255, 255, 0.2);
             border: 2px solid rgba(255, 255, 255, 0.3);
@@ -151,10 +151,10 @@
         
         #combat-log {
             position: fixed;
-            bottom: 160px;
+            bottom: 110px;
             left: 10px;
             width: 200px;
-            height: 100px;
+            height: 80px;
             background-color: rgba(0, 0, 0, 0.5);
             color: white;
             padding: 5px;
@@ -165,17 +165,17 @@
         
         #attack-button {
             position: fixed;
-            bottom: 50px;
-            right: 330px;
-            width: 80px;
-            height: 80px;
+            bottom: 20px;
+            right: 280px;
+            width: 60px;
+            height: 60px;
             background-color: rgba(255, 0, 0, 0.5);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             color: white;
-            font-size: 16px;
+            font-size: 14px;
             border: none;
             outline: none;
         }
@@ -193,8 +193,8 @@
             position: fixed;
             top: 150px;
             left: 10px;
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             background-color: rgba(0, 0, 0, 0.5);
             border-radius: 50%;
             border: 2px solid rgba(255, 255, 255, 0.3);
@@ -237,6 +237,35 @@
             font-size: 20px;
             cursor: pointer;
         }
+        
+        #day-night-indicator {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        #day-night-fill {
+            height: 100%;
+            width: 50%;
+            background-color: #87CEEB;
+            transition: width 0.5s;
+        }
+        
+        #time-display {
+            position: fixed;
+            top: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -271,6 +300,11 @@
     <button id="attack-button">Атака</button>
     
     <div id="minimap"></div>
+    
+    <div id="day-night-indicator">
+        <div id="day-night-fill"></div>
+    </div>
+    <div id="time-display">День</div>
     
     <div id="crafting-panel">
         <button id="close-crafting">×</button>
@@ -337,8 +371,8 @@
         
         // Предметы в игре
         const items = {
-            wood: { name: "Дерево", type: "resource", image: "wood.png", color: "#8B4513" },
-            stone: { name: "Камень", type: "resource", image: "stone.png", color: "#808080" },
+            wood: { name: "Дерево", type: "resource", image: "tree.png", color: "#8B4513" },
+            stone: { name: "Камень", type: "resource", image: "rock.png", color: "#808080" },
             sword: { name: "Меч", type: "weapon", image: "sword.png", color: "#C0C0C0", attack: 5, level: 1 },
             armor: { name: "Броня", type: "armor", image: "armor.png", color: "#4682B4", defense: 3, level: 1 },
             pickaxe: { name: "Кирка", type: "tool", image: "pickaxe.png", color: "#D2691E", mining: 2, level: 1 },
@@ -347,21 +381,35 @@
         
         // Ресурсы на карте
         const resources = [];
-        const RESOURCE_SPAWN_RATE = 0.01;
+        const RESOURCE_SPAWN_RATE = 0.005; // Уменьшенная частота появления
         const RESOURCE_TYPES = ["wood", "stone"];
         
         // Мобы на карте
         const mobs = [];
-        const MOB_SPAWN_RATE = 0.005;
+        const MOB_SPAWN_RATE = 0.003; // Уменьшенная частота появления
         
         // Опыт на карте
         const xpOrbs = [];
+        
+        // Система дня и ночи
+        const DAY_NIGHT_CYCLE = 4 * 60 * 1000; // 4 минуты в миллисекундах
+        let gameTime = 0;
+        let isDay = true;
+        let nightSlimesSpawned = false;
         
         // Загрузка текстур
         const textures = {};
         const slimeImage = new Image();
         slimeImage.src = 'slime.png';
         textures.slime = slimeImage;
+        
+        const treeImage = new Image();
+        treeImage.src = 'tree.png';
+        textures.tree = treeImage;
+        
+        const rockImage = new Image();
+        rockImage.src = 'rock.png';
+        textures.rock = rockImage;
         
         const playerImage = new Image();
         playerImage.src = 'player.png';
@@ -389,7 +437,7 @@
             startY: 0,
             moveX: 0,
             moveY: 0,
-            radius: 50
+            radius: 40
         };
         
         // Обработчики событий для джойстика
@@ -422,7 +470,7 @@
             joystick.active = false;
             joystick.moveX = 0;
             joystick.moveY = 0;
-            joystick.knob.style.transform = 'translate(25px, 25px)';
+            joystick.knob.style.transform = 'translate(20px, 20px)';
         }
         
         function updateJoystickKnob(touchX, touchY) {
@@ -433,12 +481,12 @@
             if (distance < joystick.radius) {
                 joystick.moveX = dx / joystick.radius;
                 joystick.moveY = dy / joystick.radius;
-                joystick.knob.style.transform = `translate(${dx + 25}px, ${dy + 25}px)`;
+                joystick.knob.style.transform = `translate(${dx + 20}px, ${dy + 20}px)`;
             } else {
                 const angle = Math.atan2(dy, dx);
                 joystick.moveX = Math.cos(angle);
                 joystick.moveY = Math.sin(angle);
-                joystick.knob.style.transform = `translate(${joystick.moveX * joystick.radius + 25}px, ${joystick.moveY * joystick.radius + 25}px)`;
+                joystick.knob.style.transform = `translate(${joystick.moveX * joystick.radius + 20}px, ${joystick.moveY * joystick.radius + 20}px)`;
             }
             
             // Обновляем направление взгляда игрока
@@ -603,13 +651,13 @@
                     if (itemData.img && itemData.img.complete) {
                         const img = document.createElement('img');
                         img.src = itemData.img.src;
-                        img.style.width = '40px';
-                        img.style.height = '40px';
+                        img.style.width = '30px';
+                        img.style.height = '30px';
                         itemElement.appendChild(img);
                     } else {
                         const colorBox = document.createElement('div');
-                        colorBox.style.width = '40px';
-                        colorBox.style.height = '40px';
+                        colorBox.style.width = '30px';
+                        colorBox.style.height = '30px';
                         colorBox.style.backgroundColor = itemData.color;
                         itemElement.appendChild(colorBox);
                     }
@@ -730,11 +778,11 @@
             return {
                 x: x,
                 y: y,
-                width: 30,
-                height: 30,
+                width: 40,
+                height: 40,
                 type: type,
                 health: 10,
-                respawnTime: 10000, // 10 секунд
+                respawnTime: 30000, // 30 секунд
                 respawnTimer: 0,
                 active: true
             };
@@ -872,10 +920,78 @@
             updateStatsUI();
         }
         
+        // Обновление системы дня и ночи
+        function updateDayNightCycle(deltaTime) {
+            gameTime += deltaTime;
+            
+            // Проверяем, не превысили ли мы полный цикл
+            if (gameTime > DAY_NIGHT_CYCLE) {
+                gameTime = 0;
+                nightSlimesSpawned = false;
+            }
+            
+            // Определяем, день сейчас или ночь (первая половина - день, вторая - ночь)
+            const newIsDay = gameTime < DAY_NIGHT_CYCLE / 2;
+            
+            // Если сменилось время суток
+            if (newIsDay !== isDay) {
+                isDay = newIsDay;
+                document.getElementById('time-display').textContent = isDay ? "День" : "Ночь";
+                
+                if (!isDay && !nightSlimesSpawned) {
+                    // Ночь - спавним дополнительных слизней
+                    for (let i = 0; i < 5; i++) {
+                        const x = Math.random() * (canvas.width - 60) + 30;
+                        const y = Math.random() * (canvas.height - 60) + 30;
+                        
+                        if (distance({ x, y }, player) > 150) {
+                            mobs.push(createSlime(x, y));
+                        }
+                    }
+                    nightSlimesSpawned = true;
+                    addToCombatLog("Наступила ночь! Появились дополнительные слизни!");
+                } else if (isDay) {
+                    addToCombatLog("Наступил день!");
+                }
+            }
+            
+            // Обновляем индикатор дня/ночи
+            const dayNightFill = document.getElementById('day-night-fill');
+            const fillPercentage = (gameTime % DAY_NIGHT_CYCLE) / DAY_NIGHT_CYCLE;
+            
+            if (fillPercentage < 0.5) {
+                // День - голубой цвет
+                dayNightFill.style.backgroundColor = '#87CEEB';
+                dayNightFill.style.width = `${fillPercentage * 200}%`;
+            } else {
+                // Ночь - темно-синий цвет
+                dayNightFill.style.backgroundColor = '#1E3F66';
+                dayNightFill.style.width = `${(1 - fillPercentage) * 200}%`;
+            }
+            
+            // Устанавливаем затемнение экрана в зависимости от времени суток
+            if (isDay) {
+                canvas.style.filter = 'brightness(1)';
+            } else {
+                // Ночь - темнее
+                const nightProgress = (gameTime - DAY_NIGHT_CYCLE / 2) / (DAY_NIGHT_CYCLE / 2);
+                const brightness = 0.5 + 0.5 * Math.sin(nightProgress * Math.PI);
+                canvas.style.filter = `brightness(${brightness})`;
+            }
+        }
+        
         // Игровой цикл
-        function gameLoop() {
+        let lastTime = 0;
+        function gameLoop(timestamp) {
+            // Вычисляем разницу во времени между кадрами
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+            
             // Очистка canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Обновление системы дня и ночи
+            updateDayNightCycle(deltaTime);
             
             // Движение игрока
             if (joystick.active) {
@@ -887,8 +1003,8 @@
                 player.y = Math.max(player.height / 2, Math.min(canvas.height - player.height / 2, player.y));
             }
             
-            // Спавн ресурсов
-            if (Math.random() < RESOURCE_SPAWN_RATE && resources.length < 20) {
+            // Спавн ресурсов (только днем)
+            if (isDay && Math.random() < RESOURCE_SPAWN_RATE && resources.length < 20) {
                 const type = RESOURCE_TYPES[Math.floor(Math.random() * RESOURCE_TYPES.length)];
                 const x = Math.random() * (canvas.width - 60) + 30;
                 const y = Math.random() * (canvas.height - 60) + 30;
@@ -899,8 +1015,9 @@
                 }
             }
             
-            // Спавн мобов
-            if (Math.random() < MOB_SPAWN_RATE && mobs.length < 10) {
+            // Спавн мобов (чаще ночью)
+            const currentMobSpawnRate = isDay ? MOB_SPAWN_RATE : MOB_SPAWN_RATE * 2;
+            if (Math.random() < currentMobSpawnRate && mobs.length < (isDay ? 10 : 15)) {
                 const x = Math.random() * (canvas.width - 60) + 30;
                 const y = Math.random() * (canvas.height - 60) + 30;
                 
@@ -913,7 +1030,7 @@
             // Обновление ресурсов
             for (const resource of resources) {
                 if (!resource.active) {
-                    resource.respawnTimer -= 16; // Примерно 60 FPS
+                    resource.respawnTimer -= deltaTime;
                     if (resource.respawnTimer <= 0) {
                         resource.active = true;
                         resource.health = 10;
@@ -922,8 +1039,14 @@
                 }
                 
                 // Отрисовка ресурса
-                ctx.fillStyle = items[resource.type].color;
-                ctx.fillRect(resource.x - resource.width / 2, resource.y - resource.height / 2, resource.width, resource.height);
+                if (resource.type === 'wood' && textures.tree.complete) {
+                    ctx.drawImage(textures.tree, resource.x - resource.width / 2, resource.y - resource.height / 2, resource.width, resource.height);
+                } else if (resource.type === 'stone' && textures.rock.complete) {
+                    ctx.drawImage(textures.rock, resource.x - resource.width / 2, resource.y - resource.height / 2, resource.width, resource.height);
+                } else {
+                    ctx.fillStyle = items[resource.type].color;
+                    ctx.fillRect(resource.x - resource.width / 2, resource.y - resource.height / 2, resource.width, resource.height);
+                }
                 
                 // Проверка сбора ресурса
                 if (distance(player, resource) < 50 && joystick.active) {
@@ -1009,7 +1132,7 @@
                             updateStatsUI();
                         }
                     } else {
-                        mob.attackCooldown -= 16;
+                        mob.attackCooldown -= deltaTime;
                     }
                 }
             }
@@ -1091,7 +1214,7 @@
         addItemToInventory('stone', 2);
         
         // Запуск игры
-        gameLoop();
+        requestAnimationFrame(gameLoop);
         
         // Обработчик клавиатуры для тестирования на ПК
         document.addEventListener('keydown', (e) => {
