@@ -9,150 +9,717 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #000;
             touch-action: none;
+            background-color: #222;
+            font-family: Arial, sans-serif;
         }
         #game-container {
             position: relative;
             width: 100vw;
             height: 100vh;
+            overflow: hidden;
+        }
+        #game-canvas {
+            display: block;
+            background-color: #87CEEB;
+        }
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            pointer-events: none;
         }
         #joystick-container {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 150px;
-            height: 150px;
-            z-index: 100;
+            bottom: 50px;
+            left: 50px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.3);
+            touch-action: none;
         }
         #joystick {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        #joystick-base {
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.2);
+            width: 40px;
+            height: 40px;
+            margin-left: -20px;
+            margin-top: -20px;
             border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            touch-action: none;
         }
         #attack-btn {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
+            bottom: 50px;
+            right: 50px;
             width: 80px;
             height: 80px;
+            border-radius: 50%;
             background-color: rgba(255, 0, 0, 0.5);
-            border-radius: 50%;
-            z-index: 100;
+            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: white;
-            font-weight: bold;
-            user-select: none;
-        }
-        #inventory-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            background-color: rgba(0, 0, 255, 0.5);
-            border-radius: 50%;
-            z-index: 100;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-weight: bold;
-            user-select: none;
-        }
-        #inventory {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            z-index: 100;
-            display: none;
-        }
-        #stats {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            z-index: 100;
-        }
-        #respawn-btn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 15px 30px;
-            background-color: red;
-            color: white;
-            border: none;
-            border-radius: 5px;
             font-size: 20px;
-            z-index: 200;
-            display: none;
+            touch-action: none;
+            user-select: none;
         }
         #day-night {
             position: absolute;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
+            top: 10px;
+            right: 10px;
+            width: 100px;
             height: 30px;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.5);
             border-radius: 15px;
-            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        #health-bar {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            width: 200px;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
             overflow: hidden;
         }
-        #time-indicator {
+        #health-fill {
             height: 100%;
-            width: 50%;
-            background: linear-gradient(to right, #1a2a6c, #b21f1f, #fdbb2d);
+            width: 100%;
+            background-color: #ff0000;
+            transition: width 0.3s;
+        }
+        #exp-bar {
+            position: absolute;
+            top: 80px;
+            left: 10px;
+            width: 200px;
+            height: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        #exp-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #00ff00;
+            transition: width 0.3s;
+        }
+        #level {
+            position: absolute;
+            top: 80px;
+            left: 220px;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+        }
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+        }
+        #loading-progress {
+            width: 80%;
+            height: 20px;
+            margin-top: 20px;
+            background-color: #333;
+        }
+        #loading-progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50;
+            transition: width 0.3s;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
 </head>
 <body>
+    <div id="loading-screen">
+        <h1>Loading Game...</h1>
+        <div id="loading-progress">
+            <div id="loading-progress-bar"></div>
+        </div>
+    </div>
     <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="ui">
+            <div id="health-bar">
+                <div id="health-fill"></div>
+            </div>
+            <div id="exp-bar">
+                <div id="exp-fill"></div>
+            </div>
+            <div id="level">Level: 1</div>
+        </div>
+        <div id="day-night">Day</div>
         <div id="joystick-container">
-            <div id="joystick-base"></div>
             <div id="joystick"></div>
         </div>
         <div id="attack-btn">ATTACK</div>
-        <div id="inventory-btn">INV</div>
-        <div id="inventory">
-            <h3>Inventory</h3>
-            <p>Wood: <span id="wood-count">0</span></p>
-            <p>Stone: <span id="stone-count">0</span></p>
-        </div>
-        <div id="stats">
-            Health: <span id="health">100</span>/100 | 
-            Level: <span id="level">1</span> | 
-            XP: <span id="xp">0</span>/<span id="next-level">100</span>
-        </div>
-        <div id="day-night">
-            <div id="time-indicator"></div>
-        </div>
-        <button id="respawn-btn">RESPAWN</button>
     </div>
-    <script src="game.js"></script>
+
+    <script>
+        // Game constants
+        const WORLD_SIZE = 5000;
+        const TILE_SIZE = 64;
+        const PLAYER_SIZE = 48;
+        const SLIME_SIZE = 40;
+        const TREE_SIZE = 80;
+        const ROCK_SIZE = 50;
+        const DAY_NIGHT_CYCLE = 600; // 10 minutes in seconds
+        const NIGHT_DURATION = 120; // 2 minutes in seconds
+        const SLIME_SPAWN_RATE = 2; // seconds between spawns during night
+
+        // Game variables
+        let canvas, ctx;
+        let player = {
+            x: WORLD_SIZE / 2,
+            y: WORLD_SIZE / 2,
+            speed: 3,
+            health: 100,
+            maxHealth: 100,
+            exp: 0,
+            level: 1,
+            expToNextLevel: 100,
+            attackCooldown: 0,
+            attackRange: 70,
+            attackDamage: 10,
+            direction: { x: 0, y: 1 }
+        };
+        let slimes = [];
+        let trees = [];
+        let rocks = [];
+        let camera = { x: 0, y: 0 };
+        let isDay = true;
+        let dayNightTimer = 0;
+        let slimeSpawnTimer = 0;
+        let joystickActive = false;
+        let joystickAngle = 0;
+        let joystickDistance = 0;
+        let attackPressed = false;
+        let textures = {};
+        let assetsLoaded = 0;
+        const totalAssets = 5; // player, tree, rock, grass, slime
+
+        // Initialize game
+        function init() {
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Load textures
+            loadTextures();
+        }
+
+        // Resize canvas to fit window
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        // Load textures
+        function loadTextures() {
+            textures.player = new Image();
+            textures.player.onload = assetLoaded;
+            textures.player.src = 'assets/player.png';
+            
+            textures.trava = new Image();
+            textures.trava.onload = assetLoaded;
+            textures.trava.src = 'assets/trava.png';
+            
+            textures.tree = new Image();
+            textures.tree.onload = assetLoaded;
+            textures.tree.src = 'assets/tree.png';
+            
+            textures.rock = new Image();
+            textures.rock.onload = assetLoaded;
+            textures.rock.src = 'assets/rock.png';
+            
+            textures.slime = new Image();
+            textures.slime.onload = assetLoaded;
+            textures.slime.src = 'assets/slime.png';
+        }
+
+        function assetLoaded() {
+            assetsLoaded++;
+            const progress = (assetsLoaded / totalAssets) * 100;
+            document.getElementById('loading-progress-bar').style.width = `${progress}%`;
+            
+            if (assetsLoaded === totalAssets) {
+                // All assets loaded
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    
+                    // Generate world
+                    generateWorld();
+                    
+                    // Set up controls
+                    setupControls();
+                    
+                    // Start game loop
+                    requestAnimationFrame(gameLoop);
+                }, 500);
+            }
+        }
+
+        // Generate world with trees and rocks
+        function generateWorld() {
+            // Generate trees
+            const treeCount = 200;
+            for (let i = 0; i < treeCount; i++) {
+                let validPosition = false;
+                let x, y;
+                
+                while (!validPosition) {
+                    x = Math.random() * (WORLD_SIZE - TREE_SIZE);
+                    y = Math.random() * (WORLD_SIZE - TREE_SIZE);
+                    validPosition = true;
+                    
+                    // Check distance to other trees
+                    for (const tree of trees) {
+                        const dx = tree.x - x;
+                        const dy = tree.y - y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 100) {
+                            validPosition = false;
+                            break;
+                        }
+                    }
+                }
+                
+                trees.push({ x, y });
+            }
+            
+            // Generate rocks
+            const rockCount = 300;
+            for (let i = 0; i < rockCount; i++) {
+                let validPosition = false;
+                let x, y;
+                
+                while (!validPosition) {
+                    x = Math.random() * (WORLD_SIZE - ROCK_SIZE);
+                    y = Math.random() * (WORLD_SIZE - ROCK_SIZE);
+                    validPosition = true;
+                    
+                    // Check distance to other rocks
+                    for (const rock of rocks) {
+                        const dx = rock.x - x;
+                        const dy = rock.y - y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 50) {
+                            validPosition = false;
+                            break;
+                        }
+                    }
+                    
+                    // Check distance to trees
+                    for (const tree of trees) {
+                        const dx = tree.x - x;
+                        const dy = tree.y - y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 75) {
+                            validPosition = false;
+                            break;
+                        }
+                    }
+                }
+                
+                rocks.push({ x, y });
+            }
+        }
+
+        // Set up controls
+        function setupControls() {
+            // Virtual joystick
+            const joystickContainer = document.getElementById('joystick-container');
+            const joystick = document.getElementById('joystick');
+            
+            joystickContainer.addEventListener('touchstart', handleJoystickStart);
+            joystickContainer.addEventListener('touchmove', handleJoystickMove);
+            joystickContainer.addEventListener('touchend', handleJoystickEnd);
+            
+            // Mouse controls for desktop
+            joystickContainer.addEventListener('mousedown', handleJoystickStart);
+            document.addEventListener('mousemove', handleJoystickMove);
+            document.addEventListener('mouseup', handleJoystickEnd);
+            
+            // Attack button
+            const attackBtn = document.getElementById('attack-btn');
+            attackBtn.addEventListener('touchstart', () => { attackPressed = true; });
+            attackBtn.addEventListener('touchend', () => { attackPressed = false; });
+            attackBtn.addEventListener('mousedown', () => { attackPressed = true; });
+            attackBtn.addEventListener('mouseup', () => { attackPressed = false; });
+            attackBtn.addEventListener('mouseleave', () => { attackPressed = false; });
+            
+            // Keyboard controls
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+        }
+
+        // Joystick handlers
+        function handleJoystickStart(e) {
+            e.preventDefault();
+            joystickActive = true;
+            updateJoystickPosition(e);
+        }
+
+        function handleJoystickMove(e) {
+            if (!joystickActive) return;
+            e.preventDefault();
+            updateJoystickPosition(e);
+        }
+
+        function handleJoystickEnd(e) {
+            e.preventDefault();
+            joystickActive = false;
+            joystickDistance = 0;
+            document.getElementById('joystick').style.transform = 'translate(-50%, -50%)';
+        }
+
+        function updateJoystickPosition(e) {
+            const joystickContainer = document.getElementById('joystick-container');
+            const joystick = document.getElementById('joystick');
+            const rect = joystickContainer.getBoundingClientRect();
+            
+            let clientX, clientY;
+            
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const dx = clientX - centerX;
+            const dy = clientY - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            const maxDistance = rect.width / 2;
+            joystickDistance = Math.min(distance, maxDistance) / maxDistance;
+            
+            if (distance > 0) {
+                joystickAngle = Math.atan2(dy, dx);
+                player.direction = { x: Math.cos(joystickAngle), y: Math.sin(joystickAngle) };
+            }
+            
+            const joystickX = (dx / distance) * Math.min(distance, maxDistance);
+            const joystickY = (dy / distance) * Math.min(distance, maxDistance);
+            
+            joystick.style.transform = `translate(calc(-50% + ${joystickX}px), calc(-50% + ${joystickY}px))`;
+        }
+
+        // Keyboard handlers
+        const keys = {};
+        function handleKeyDown(e) {
+            keys[e.key] = true;
+            
+            // Update player direction based on last pressed key
+            if (e.key === 'ArrowUp' || e.key === 'w') player.direction = { x: 0, y: -1 };
+            if (e.key === 'ArrowDown' || e.key === 's') player.direction = { x: 0, y: 1 };
+            if (e.key === 'ArrowLeft' || e.key === 'a') player.direction = { x: -1, y: 0 };
+            if (e.key === 'ArrowRight' || e.key === 'd') player.direction = { x: 1, y: 0 };
+        }
+
+        function handleKeyUp(e) {
+            keys[e.key] = false;
+            
+            // Space for attack
+            if (e.key === ' ') attackPressed = false;
+        }
+
+        // Game loop
+        function gameLoop(timestamp) {
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Update game state
+        function update() {
+            // Update player position based on joystick or keyboard input
+            let moveX = 0, moveY = 0;
+            
+            if (joystickActive) {
+                moveX = Math.cos(joystickAngle) * player.speed * joystickDistance;
+                moveY = Math.sin(joystickAngle) * player.speed * joystickDistance;
+            } else {
+                if (keys['ArrowUp'] || keys['w']) moveY = -player.speed;
+                if (keys['ArrowDown'] || keys['s']) moveY = player.speed;
+                if (keys['ArrowLeft'] || keys['a']) moveX = -player.speed;
+                if (keys['ArrowRight'] || keys['d']) moveX = player.speed;
+                
+                // Normalize diagonal movement
+                if (moveX !== 0 && moveY !== 0) {
+                    moveX *= 0.7071; // 1/sqrt(2)
+                    moveY *= 0.7071;
+                }
+            }
+            
+            // Update player position with collision detection
+            const newX = player.x + moveX;
+            const newY = player.y + moveY;
+            
+            // Check world boundaries
+            if (newX >= 0 && newX <= WORLD_SIZE - PLAYER_SIZE) {
+                player.x = newX;
+            }
+            if (newY >= 0 && newY <= WORLD_SIZE - PLAYER_SIZE) {
+                player.y = newY;
+            }
+            
+            // Update camera to follow player
+            camera.x = player.x + PLAYER_SIZE/2 - canvas.width/2;
+            camera.y = player.y + PLAYER_SIZE/2 - canvas.height/2;
+            
+            // Keep camera within world bounds
+            camera.x = Math.max(0, Math.min(camera.x, WORLD_SIZE - canvas.width));
+            camera.y = Math.max(0, Math.min(camera.y, WORLD_SIZE - canvas.height));
+            
+            // Update day/night cycle
+            dayNightTimer += 1/60; // Assuming 60 FPS
+            if (isDay && dayNightTimer >= DAY_NIGHT_CYCLE) {
+                isDay = false;
+                dayNightTimer = 0;
+                document.getElementById('day-night').textContent = 'Night';
+                document.body.style.backgroundColor = '#111';
+            } else if (!isDay && dayNightTimer >= NIGHT_DURATION) {
+                isDay = true;
+                dayNightTimer = 0;
+                document.getElementById('day-night').textContent = 'Day';
+                document.body.style.backgroundColor = '#222';
+            }
+            
+            // Spawn slimes at night
+            if (!isDay) {
+                slimeSpawnTimer += 1/60;
+                if (slimeSpawnTimer >= SLIME_SPAWN_RATE) {
+                    slimeSpawnTimer = 0;
+                    
+                    // Spawn slime at random position near player but not too close
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 300 + Math.random() * 200;
+                    const x = player.x + Math.cos(angle) * distance;
+                    const y = player.y + Math.sin(angle) * distance;
+                    
+                    // Make sure slime is within world bounds
+                    if (x >= 0 && x <= WORLD_SIZE - SLIME_SIZE && y >= 0 && y <= WORLD_SIZE - SLIME_SIZE) {
+                        slimes.push({
+                            x,
+                            y,
+                            health: 10,
+                            speed: 1 + Math.random() * 0.5,
+                            attackCooldown: 0,
+                            attackRate: 1,
+                            damage: 5
+                        });
+                    }
+                }
+            } else {
+                // Clear slimes during day
+                if (slimes.length > 0) {
+                    slimes = [];
+                }
+            }
+            
+            // Update slimes
+            for (let i = slimes.length - 1; i >= 0; i--) {
+                const slime = slimes[i];
+                
+                // Move slime toward player
+                const dx = player.x + PLAYER_SIZE/2 - (slime.x + SLIME_SIZE/2);
+                const dy = player.y + PLAYER_SIZE/2 - (slime.y + SLIME_SIZE/2);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    const moveX = (dx / distance) * slime.speed;
+                    const moveY = (dy / distance) * slime.speed;
+                    
+                    slime.x += moveX;
+                    slime.y += moveY;
+                }
+                
+                // Attack player if close enough
+                if (distance < 40 && slime.attackCooldown <= 0) {
+                    player.health -= slime.damage;
+                    slime.attackCooldown = slime.attackRate;
+                    
+                    // Update health bar
+                    document.getElementById('health-fill').style.width = `${(player.health / player.maxHealth) * 100}%`;
+                    
+                    // Check if player died
+                    if (player.health <= 0) {
+                        player.health = player.maxHealth;
+                        // Respawn player at center
+                        player.x = WORLD_SIZE / 2;
+                        player.y = WORLD_SIZE / 2;
+                        document.getElementById('health-fill').style.width = '100%';
+                    }
+                }
+                
+                // Update attack cooldown
+                if (slime.attackCooldown > 0) {
+                    slime.attackCooldown -= 1/60;
+                }
+                
+                // Remove dead slimes
+                if (slime.health <= 0) {
+                    slimes.splice(i, 1);
+                    // Add experience
+                    player.exp += 20;
+                    // Check level up
+                    if (player.exp >= player.expToNextLevel) {
+                        player.level++;
+                        player.exp -= player.expToNextLevel;
+                        player.expToNextLevel = Math.floor(player.expToNextLevel * 1.5);
+                        player.maxHealth += 20;
+                        player.health = player.maxHealth;
+                        player.attackDamage += 2;
+                        document.getElementById('level').textContent = `Level: ${player.level}`;
+                        document.getElementById('health-fill').style.width = '100%';
+                    }
+                    // Update exp bar
+                    document.getElementById('exp-fill').style.width = `${(player.exp / player.expToNextLevel) * 100}%`;
+                }
+            }
+            
+            // Player attack
+            if (player.attackCooldown > 0) {
+                player.attackCooldown -= 1/60;
+            } else if (attackPressed || keys[' ']) {
+                player.attackCooldown = 0.5; // Attack cooldown in seconds
+                
+                // Check for slimes in attack range
+                for (const slime of slimes) {
+                    const dx = slime.x + SLIME_SIZE/2 - (player.x + PLAYER_SIZE/2);
+                    const dy = slime.y + SLIME_SIZE/2 - (player.y + PLAYER_SIZE/2);
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < player.attackRange) {
+                        slime.health -= player.attackDamage;
+                    }
+                }
+            }
+        }
+
+        // Render game
+        function render() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate visible area
+            const startX = Math.floor(camera.x / TILE_SIZE);
+            const startY = Math.floor(camera.y / TILE_SIZE);
+            const endX = Math.ceil((camera.x + canvas.width) / TILE_SIZE);
+            const endY = Math.ceil((camera.y + canvas.height) / TILE_SIZE);
+            
+            // Draw grass tiles
+            for (let y = startY; y <= endY; y++) {
+                for (let x = startX; x <= endX; x++) {
+                    const tileX = x * TILE_SIZE - camera.x;
+                    const tileY = y * TILE_SIZE - camera.y;
+                    
+                    ctx.drawImage(textures.trava, tileX, tileY, TILE_SIZE, TILE_SIZE);
+                }
+            }
+            
+            // Draw rocks
+            for (const rock of rocks) {
+                const rockX = rock.x - camera.x;
+                const rockY = rock.y - camera.y;
+                
+                // Only draw if visible
+                if (rockX + ROCK_SIZE > 0 && rockX < canvas.width &&
+                    rockY + ROCK_SIZE > 0 && rockY < canvas.height) {
+                    ctx.drawImage(textures.rock, rockX, rockY, ROCK_SIZE, ROCK_SIZE);
+                }
+            }
+            
+            // Draw trees
+            for (const tree of trees) {
+                const treeX = tree.x - camera.x;
+                const treeY = tree.y - camera.y;
+                
+                // Only draw if visible
+                if (treeX + TREE_SIZE > 0 && treeX < canvas.width &&
+                    treeY + TREE_SIZE > 0 && treeY < canvas.height) {
+                    ctx.drawImage(textures.tree, treeX, treeY, TREE_SIZE, TREE_SIZE);
+                }
+            }
+            
+            // Draw slimes
+            for (const slime of slimes) {
+                const slimeX = slime.x - camera.x;
+                const slimeY = slime.y - camera.y;
+                
+                // Only draw if visible
+                if (slimeX + SLIME_SIZE > 0 && slimeX < canvas.width &&
+                    slimeY + SLIME_SIZE > 0 && slimeY < canvas.height) {
+                    ctx.drawImage(textures.slime, slimeX, slimeY, SLIME_SIZE, SLIME_SIZE);
+                    
+                    // Draw health bar
+                    const healthPercentage = slime.health / 10;
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(slimeX, slimeY - 10, SLIME_SIZE, 5);
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(slimeX, slimeY - 10, SLIME_SIZE * healthPercentage, 5);
+                }
+            }
+            
+            // Draw player
+            const playerX = player.x - camera.x;
+            const playerY = player.y - camera.y;
+            ctx.drawImage(textures.player, playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
+            
+            // Draw attack effect if attacking
+            if (player.attackCooldown > 0.4) { // First 0.1 seconds of attack
+                ctx.beginPath();
+                ctx.arc(
+                    playerX + PLAYER_SIZE/2 + player.direction.x * player.attackRange/2,
+                    playerY + PLAYER_SIZE/2 + player.direction.y * player.attackRange/2,
+                    player.attackRange/2,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.strokeStyle = 'rgba(255, 255, 0, 0.7)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+            
+            // Apply day/night filter
+            if (!isDay) {
+                ctx.fillStyle = 'rgba(0, 0, 30, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        // Start the game
+        window.onload = init;
+    </script>
 </body>
 </html>
