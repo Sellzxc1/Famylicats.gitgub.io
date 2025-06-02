@@ -4,7 +4,168 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Slime Adventure</title>
-    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #222;
+            color: white;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #game-canvas {
+            background-color: #87CEEB;
+            display: block;
+        }
+        
+        #ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        #inventory {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+        
+        .inventory-slot {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 2px solid #555;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .inventory-slot img {
+            max-width: 80%;
+            max-height: 80%;
+        }
+        
+        .inventory-slot .count {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 2px 5px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        
+        #day-night-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #time-display {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        #joystick-container {
+            position: absolute;
+            bottom: 100px;
+            left: 50px;
+            width: 100px;
+            height: 100px;
+            pointer-events: auto;
+        }
+        
+        #joystick-base {
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            position: relative;
+        }
+        
+        #joystick-handle {
+            width: 50%;
+            height: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            position: absolute;
+            top: 25%;
+            left: 25%;
+            transition: transform 0.1s;
+        }
+        
+        .night-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 50, 0.7);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+        
+        #health-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 200px;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        #health-fill {
+            height: 100%;
+            width: 100%;
+            background-color: #ff5555;
+            transition: width 0.3s;
+        }
+        
+        #health-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
     <div id="game-container">
@@ -36,12 +197,362 @@
         </div>
     </div>
 
-    <script src="js/game-state.js"></script>
-    <script src="js/resources.js"></script>
-    <script src="js/player.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/controls.js"></script>
-    <script src="js/renderer.js"></script>
-    <script src="js/main.js"></script>
-</body>
-</html>
+    <script>
+        // Game constants
+        const DAY_DURATION = 6 * 60 * 1000; // 6 minutes in milliseconds
+        const NIGHT_DURATION = 6 * 60 * 1000; // 6 minutes in milliseconds
+        const RESOURCE_RESPAWN_TIME = 30 * 1000; // 30 seconds in milliseconds
+        const SLIME_SPAWN_RATE = 3000; // 3 seconds during night
+        
+        // Game state
+        const gameState = {
+            player: {
+                x: 400,
+                y: 300,
+                width: 40,
+                height: 60,
+                speed: 3,
+                health: 100,
+                maxHealth: 100,
+                inventory: {
+                    wood: 0,
+                    stone: 0
+                },
+                selectedItem: null
+            },
+            resources: {
+                trees: [],
+                rocks: []
+            },
+            slimes: [],
+            time: {
+                isDay: true,
+                cycleStart: Date.now(),
+                nextTransition: DAY_DURATION
+            },
+            controls: {
+                left: false,
+                right: false,
+                up: false,
+                down: false
+            },
+            lastResourceSpawn: 0,
+            lastSlimeSpawn: 0
+        };
+        
+        // Load game state from localStorage
+        function loadGameState() {
+            const savedState = localStorage.getItem('slimeGameState');
+            if (savedState) {
+                const parsed = JSON.parse(savedState);
+                Object.assign(gameState, parsed);
+                gameState.time.cycleStart = Date.now() - (parsed.time.currentTime || 0);
+            }
+        }
+        
+        // Save game state to localStorage
+        function saveGameState() {
+            const currentTime = Date.now() - gameState.time.cycleStart;
+            const stateToSave = {
+                player: {
+                    x: gameState.player.x,
+                    y: gameState.player.y,
+                    health: gameState.player.health,
+                    maxHealth: gameState.player.maxHealth,
+                    inventory: {...gameState.player.inventory},
+                    selectedItem: gameState.player.selectedItem
+                },
+                resources: {
+                    trees: [...gameState.resources.trees],
+                    rocks: [...gameState.resources.rocks]
+                },
+                slimes: [...gameState.slimes],
+                time: {
+                    isDay: gameState.time.isDay,
+                    currentTime: currentTime,
+                    nextTransition: gameState.time.isDay ? DAY_DURATION - (currentTime % DAY_DURATION) : NIGHT_DURATION - (currentTime % NIGHT_DURATION)
+                }
+            };
+            localStorage.setItem('slimeGameState', JSON.stringify(stateToSave));
+        }
+        
+        // Initialize the game
+        function initGame() {
+            loadGameState();
+            
+            const canvas = document.getElementById('game-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // Load textures
+            const textures = {
+                player: new Image(),
+                slime: new Image(),
+                tree: new Image(),
+                rock: new Image(),
+                platform: new Image()
+            };
+            
+            textures.player.src = 'assets/player.png';
+            textures.slime.src = 'assets/slime.png';
+            textures.tree.src = 'assets/tree.png';
+            textures.rock.src = 'assets/rock.png';
+            
+            // Create a grass platform texture
+            textures.platform.onload = function() {
+                // Texture loaded
+            };
+            textures.platform.src = 'trava.png';
+            
+            // Initialize resources if none exist
+            if (gameState.resources.trees.length === 0) {
+                spawnInitialResources(canvas.width, canvas.height);
+            }
+            
+            // Initialize inventory UI
+            initInventoryUI();
+            
+            // Joystick setup
+            const joystickBase = document.getElementById('joystick-base');
+            const joystickHandle = document.getElementById('joystick-handle');
+            let joystickActive = false;
+            let joystickCenter = { x: 0, y: 0 };
+            let joystickPosition = { x: 0, y: 0 };
+            
+            function handleJoystickStart(e) {
+                joystickActive = true;
+                const rect = joystickBase.getBoundingClientRect();
+                joystickCenter = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2
+                };
+                handleJoystickMove(e);
+            }
+            
+            function handleJoystickMove(e) {
+                if (!joystickActive) return;
+                
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                // Calculate position relative to center
+                joystickPosition = {
+                    x: clientX - joystickCenter.x,
+                    y: clientY - joystickCenter.y
+                };
+                
+                // Limit to joystick base radius
+                const maxDistance = joystickBase.offsetWidth / 2;
+                const distance = Math.sqrt(joystickPosition.x * joystickPosition.x + joystickPosition.y * joystickPosition.y);
+                
+                if (distance > maxDistance) {
+                    joystickPosition.x = (joystickPosition.x / distance) * maxDistance;
+                    joystickPosition.y = (joystickPosition.y / distance) * maxDistance;
+                }
+                
+                // Update handle position
+                joystickHandle.style.transform = `translate(${joystickPosition.x}px, ${joystickPosition.y}px)`;
+                
+                // Update controls
+                const deadzone = 10;
+                gameState.controls.left = joystickPosition.x < -deadzone;
+                gameState.controls.right = joystickPosition.x > deadzone;
+                gameState.controls.up = joystickPosition.y < -deadzone;
+                gameState.controls.down = joystickPosition.y > deadzone;
+            }
+            
+            function handleJoystickEnd() {
+                joystickActive = false;
+                joystickHandle.style.transform = 'translate(0, 0)';
+                gameState.controls.left = false;
+                gameState.controls.right = false;
+                gameState.controls.up = false;
+                gameState.controls.down = false;
+            }
+            
+            joystickBase.addEventListener('mousedown', handleJoystickStart);
+            joystickBase.addEventListener('touchstart', handleJoystickStart);
+            
+            document.addEventListener('mousemove', handleJoystickMove);
+            document.addEventListener('touchmove', handleJoystickMove);
+            
+            document.addEventListener('mouseup', handleJoystickEnd);
+            document.addEventListener('touchend', handleJoystickEnd);
+            
+            // Keyboard controls
+            document.addEventListener('keydown', (e) => {
+                switch (e.key) {
+                    case 'ArrowLeft':
+                    case 'a':
+                        gameState.controls.left = true;
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                        gameState.controls.right = true;
+                        break;
+                    case 'ArrowUp':
+                    case 'w':
+                        gameState.controls.up = true;
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                        gameState.controls.down = true;
+                        break;
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                switch (e.key) {
+                    case 'ArrowLeft':
+                    case 'a':
+                        gameState.controls.left = false;
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                        gameState.controls.right = false;
+                        break;
+                    case 'ArrowUp':
+                    case 'w':
+                        gameState.controls.up = false;
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                        gameState.controls.down = false;
+                        break;
+                }
+            });
+            
+            // Click handler for trees
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                
+                // Check if clicked on a tree
+                for (const tree of gameState.resources.trees) {
+                    if (!tree.collected && 
+                        clickX >= tree.x && clickX <= tree.x + tree.width &&
+                        clickY >= tree.y && clickY <= tree.y + tree.height) {
+                        tree.collected = true;
+                        tree.respawnTime = Date.now() + RESOURCE_RESPAWN_TIME;
+                        gameState.player.inventory.wood++;
+                        updateInventoryUI();
+                        break;
+                    }
+                }
+            });
+            
+            // Game loop
+            function gameLoop() {
+                update();
+                render(ctx, canvas.width, canvas.height, textures);
+                requestAnimationFrame(gameLoop);
+            }
+            
+            gameLoop();
+            
+            // Handle window close to save game
+            window.addEventListener('beforeunload', saveGameState);
+        }
+        
+        function spawnInitialResources(width, height) {
+            const MIN_DISTANCE_BETWEEN_TREES = 150; // Минимальное расстояние между деревьями
+            const MIN_DISTANCE_BETWEEN_ROCKS = 100; // Минимальное расстояние между камнями
+            const TREE_ROCK_MIN_DISTANCE = 120; // Минимальное расстояние между деревом и камнем
+            
+            // Spawn trees (меньше деревьев)
+            const treeCount = 5; // Уменьшил количество деревьев с 10 до 5
+            for (let i = 0; i < treeCount; i++) {
+                let x, y, attempts = 0;
+                let validPosition = false;
+                
+                // Пытаемся найти валидную позицию
+                while (!validPosition && attempts < 100) {
+                    attempts++;
+                    x = Math.random() * (width - 100) + 50;
+                    y = Math.random() * (height - 200) + 100;
+                    validPosition = true;
+                    
+                    // Проверяем расстояние до других деревьев
+                    for (const tree of gameState.resources.trees) {
+                        const dx = tree.x - x;
+                        const dy = tree.y - y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < MIN_DISTANCE_BETWEEN_TREES) {
+                            validPosition = false;
+                            break;
+                        }
+                    }
+                    
+                    // Проверяем расстояние до камней
+                    for (const rock of gameState.resources.rocks) {
+                        const dx = rock.x - x;
+                        const dy = rock.y - y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < TREE_ROCK_MIN_DISTANCE) {
+                            validPosition = false;
+                            break;
+                        }
+                    }
+                }
+                
+                if (validPosition) {
+                    gameState.resources.trees.push({
+                        x: x,
+                        y: y,
+                        width: 60,
+                        height: 80,
+                        collected: false,
+                        respawnTime: 0
+                    });
+                }
+            }
+            
+            // Spawn rocks (камни появляются реже)
+            const rockCount = 7; // Уменьшил количество камней с 10 до 7
+            for (let i = 0; i < rockCount; i++) {
+                let x, y, attempts = 0;
+                let validPosition = false;
+                
+                // Пытаемся найти валидную позицию
+                while (!validPosition && attempts < 100) {
+                    attempts++;
+                    x = Math.random() * (width - 100) + 50;
+                    y = Math.random() * (height - 200) + 100;
+                    validPosition = true;
+                    
+                    // Проверяем расстояние до других камней
+                    for (const rock of gameState.resources.rocks) {
+                        const dx = rock.x - x;
+                        const dy = rock.y - y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < MIN_DISTANCE_BETWEEN_ROCKS) {
+                            validPosition = false;
+                            break;
+                        }
+                    }
+                    
+                    // Проверяем расстояние до деревьев
+                    for (const tree of gameState.resources.trees) {
+                        const dx = tree.x - x;
+                        const dy = tree.y - y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < TREE_ROCK_MIN_DISTANCE) {
+                            validPosition = false;
+                            break;
+                        }
+                    }
+                }
+                
+                if (v
