@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Семья котов - Меню</title>
+
+<!-- Шрифт в стиле Minecraft: можно использовать похожий "Minecraftia" или "Press Start 2P" -->
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+
+<style>
+  /* Общие стили в стиле Minecraft */
+  html, body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Press Start 2P', monospace;
+    background: linear-gradient(to bottom, #6b8e23 0%, #2e4d12 60%, #1c2a06 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  body {
+    flex-direction: column;
+  }
+
+  /* Обводка вокруг всего меню – пиксельный эффект */
+  .menu-container {
+    background: #3c663c;
+    padding: 40px 80px;
+    border: 8px solid #769c44;
+    box-shadow:
+      0 0 0 8px #31501e,
+      inset 0 0 10px 2px #9acd32;
+    border-radius: 0;
+    text-align: center;
+    user-select: none;
+    min-width: 400px;
+  }
+
+  /* Заголовок */
+  h1 {
+    font-size: 40px;
+    margin: 0 0 40px 0;
+    color: #d7e88f;
+    text-shadow: 
+      1px 1px 0 #2b3c0a,
+      2px 2px 0 #2b3c0a;
+    letter-spacing: 2px;
+  }
+
+  /* Кнопка в стиле Minecraft */
+  .play-button {
+    background: linear-gradient(to bottom, #d3d3d3 0%, #a1a1a1 100%);
+    border: 4px solid #555533;
+    box-shadow:
+      inset 0 2px 0 #eeeeee,
+      inset 0 -2px 3px #666622,
+      4px 4px 0 #4a4a22;
+    color: #222200;
+    font-size: 14px;
+    padding: 18px 50px;
+    font-weight: bold;
+    cursor: pointer;
+    text-shadow:
+      1px 1px 0 #ffffaa;
+    letter-spacing: 1.5px;
+    transition: transform 0.1s ease;
+    font-family: 'Press Start 2P', monospace;
+    user-select: none;
+  }
+
+  .play-button:active {
+    transform: translate(2px, 2px);
+    box-shadow:
+      inset 0 1px 0 #cfcf5f,
+      inset 0 -1px 2px #494919;
+  }
+
+  .play-button:hover {
+    background: linear-gradient(to bottom, #ffffff 0%, #bbbbbb 100%);
+  }
+
+  /* Слайм в стиле Minecraft (конечно, исходя из вашего изображения) */
+  .slime-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 120px;
+    height: 120px;
+    pointer-events: none;
+  }
+
+  .slime {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    animation: slimeBounce 3s ease-in-out infinite;
+  }
+
+  @keyframes slimeBounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="menu-container">
+    <h1>СЕМЬЯ КОТОВ</h1>
+    <button class="play-button" onclick="startGame()">ИГРАТЬ</button>
+  </div>
+
+  <div class="slime-container">
+    <img src="./assets/slime.png" alt="Slime" class="slime" />
+  </div>
+
+  <audio id="bg-music" src="./audio/FONMENU.mp3" loop></audio>
+
+<script>
+  function startGame() {
+    window.location.href = 'game.html';
+  }
+
+  window.addEventListener('load', () => {
+    const audio = document.getElementById('bg-music');
+    audio.volume = 0.3; // Помогает автозапуску в некоторых браузерах
+    const playPromise = audio.play();
+
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        // Музыка играет успешно
+      }).catch(() => {
+        // Автозапуск заблокирован — запускаем после клика
+        const startMusic = () => {
+          audio.play();
+          window.removeEventListener('click',
+ startMusic);
+        };
+        window.addEventListener('click', startMusic);
+      });
+    }
+  });
+</script>
+
+</body>
+</html>
