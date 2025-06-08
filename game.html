@@ -31,44 +31,6 @@
             text-shadow: 1px 1px 2px black;
             pointer-events: none;
         }
-        #joystick-container {
-            position: absolute;
-            bottom: 150px;
-            left: 50px;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background-color: rgba(0, 0, 0, 0.3);
-            touch-action: none;
-        }
-        #joystick {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 40px;
-            height: 40px;
-            margin-left: -20px;
-            margin-top: -20px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.5);
-            touch-action: none;
-        }
-        #attack-btn {
-            position: absolute;
-            bottom: 150px;
-            right: 50px;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: rgba(255, 0, 0, 0.5);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            touch-action: none;
-            user-select: none;
-        }
         #day-night {
             position: absolute;
             top: 10px;
@@ -147,23 +109,77 @@
             background-color: #4CAF50;
             transition: width 0.3s;
         }
+        
+        /* Warcraft-style UI */
+        #avatar-container {
+            position: absolute;
+            bottom: 120px;
+            left: 20px;
+            width: 100px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 2px solid #483112;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #avatar {
+            width: 80px;
+            height: 80px;
+            background-image: url('AVA.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        #action-buttons {
+            position: absolute;
+            bottom: 120px;
+            left: 140px;
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            grid-gap: 5px;
+        }
+        
+        .action-btn {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(50, 50, 50, 0.7);
+            border: 2px solid #483112;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        #attack-btn {
+            background-color: rgba(255, 0, 0, 0.3);
+            border: 2px solid #800000;
+        }
+        
+        #attack-btn.active {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 2px solid #000;
+        }
+        
         #inventory {
             position: absolute;
-            bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 5px;
-            border-radius: 5px;
-            max-width: 90%;
-            overflow-x: auto;
+            bottom: 20px;
+            left: 140px;
+            display: grid;
+            grid-template-columns: repeat(6, 60px);
+            grid-gap: 5px;
         }
+        
         .inventory-slot {
-            width: 40px;
-            height: 40px;
-            margin: 2px;
-            background-color: rgba(255, 255, 255, 0.2);
+            width: 60px;
+            height: 60px;
+            background-color: rgba(50, 50, 50, 0.7);
+            border: 2px solid #483112;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -171,15 +187,18 @@
             color: white;
             font-size: 12px;
             position: relative;
-            flex-shrink: 0;
         }
+        
         .inventory-slot.selected {
-            border: 2px solid yellow;
+            border: 2px solid gold;
+            background-color: rgba(100, 100, 0, 0.5);
         }
+        
         .inventory-slot img {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
         }
+        
         .item-count {
             position: absolute;
             bottom: 2px;
@@ -188,22 +207,7 @@
             color: white;
             text-shadow: 1px 1px 1px black;
         }
-        #build-btn {
-            position: absolute;
-            bottom: 150px;
-            right: 150px;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: rgba(0, 0, 255, 0.5);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            touch-action: none;
-            user-select: none;
-        }
+        
         #build-mode-indicator {
             position: absolute;
             top: 50px;
@@ -218,23 +222,8 @@
             color: white;
             font-size: 12px;
         }
+        
         /* Crafting Window Styles */
-        #crafting-btn {
-            position: absolute;
-            bottom: 150px;
-            right: 250px;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: rgba(255, 165, 0, 0.5);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            touch-action: none;
-            user-select: none;
-        }
         #crafting-window {
             position: absolute;
             top: 50%;
@@ -242,18 +231,20 @@
             transform: translate(-50%, -50%);
             width: 300px;
             background-color: rgba(0, 0, 0, 0.8);
-            border: 2px solid #555;
+            border: 2px solid #483112;
             border-radius: 10px;
             padding: 15px;
             color: white;
             display: none;
             z-index: 50;
         }
+        
         #crafting-window h2 {
             margin-top: 0;
             text-align: center;
             color: #ffa500;
         }
+        
         .crafting-recipe {
             display: flex;
             align-items: center;
@@ -262,29 +253,35 @@
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
         }
+        
         .recipe-inputs, .recipe-outputs {
             display: flex;
             align-items: center;
         }
+        
         .recipe-arrow {
             margin: 0 15px;
             font-size: 20px;
             color: #ffa500;
         }
+        
         .recipe-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             margin: 0 5px;
         }
+        
         .recipe-item img {
             width: 32px;
             height: 32px;
         }
+        
         .recipe-item-count {
             font-size: 12px;
             margin-top: 2px;
         }
+        
         .craft-btn {
             margin-left: auto;
             padding: 5px 10px;
@@ -294,11 +291,13 @@
             color: black;
             cursor: pointer;
         }
+        
         .craft-btn:disabled {
             background-color: #555;
             color: #888;
             cursor: not-allowed;
         }
+        
         #close-crafting {
             position: absolute;
             top: 5px;
@@ -309,22 +308,7 @@
             font-size: 20px;
             cursor: pointer;
         }
-        #mine-btn {
-            position: absolute;
-            bottom: 50px;
-            right: 50px;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: rgba(0, 255, 0, 0.5);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            touch-action: none;
-            user-select: none;
-        }
+        
         /* BLOCK4 Window Styles */
         #block4-window {
             position: absolute;
@@ -340,17 +324,20 @@
             display: none;
             z-index: 50;
         }
+        
         #block4-window h2 {
             margin-top: 0;
             text-align: center;
             color: #ffa500;
         }
+        
         .block4-slots {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
             margin: 15px 0;
         }
+        
         .block4-slot {
             width: 60px;
             height: 60px;
@@ -361,10 +348,12 @@
             cursor: pointer;
             position: relative;
         }
+        
         .block4-slot img {
             width: 40px;
             height: 40px;
         }
+        
         .block4-slot .item-count {
             position: absolute;
             bottom: 2px;
@@ -373,6 +362,7 @@
             color: white;
             text-shadow: 1px 1px 1px black;
         }
+        
         #close-block4 {
             position: absolute;
             top: 5px;
@@ -383,11 +373,13 @@
             font-size: 20px;
             cursor: pointer;
         }
+        
         .transfer-controls {
             display: flex;
             justify-content: space-between;
             margin-top: 10px;
         }
+        
         .transfer-btn {
             padding: 5px 10px;
             background-color: #ffa500;
@@ -396,11 +388,13 @@
             color: black;
             cursor: pointer;
         }
+        
         .transfer-btn:disabled {
             background-color: #555;
             color: #888;
             cursor: not-allowed;
         }
+        
         /* BLOCK5 Window Styles */
         #block5-window {
             position: absolute;
@@ -416,11 +410,13 @@
             display: none;
             z-index: 50;
         }
+        
         #block5-window h2 {
             margin-top: 0;
             text-align: center;
             color: #ffa500;
         }
+        
         #close-block5 {
             position: absolute;
             top: 5px;
@@ -431,6 +427,7 @@
             font-size: 20px;
             cursor: pointer;
         }
+        
         /* BLOCK6 Window Styles */
         #block6-window {
             position: absolute;
@@ -446,11 +443,13 @@
             display: none;
             z-index: 50;
         }
+        
         #block6-window h2 {
             margin-top: 0;
             text-align: center;
             color: #ffa500;
         }
+        
         #close-block6 {
             position: absolute;
             top: 5px;
@@ -461,6 +460,7 @@
             font-size: 20px;
             cursor: pointer;
         }
+        
         /* BLOCK8 Window Styles */
         #block8-window {
             position: absolute;
@@ -476,11 +476,13 @@
             display: none;
             z-index: 50;
         }
+        
         #block8-window h2 {
             margin-top: 0;
             text-align: center;
             color: #ffa500;
         }
+        
         #close-block8 {
             position: absolute;
             top: 5px;
@@ -491,6 +493,7 @@
             font-size: 20px;
             cursor: pointer;
         }
+        
         /* BLOCK9 Window Styles */
         #block9-window {
             position: absolute;
@@ -506,11 +509,13 @@
             display: none;
             z-index: 50;
         }
+        
         #block9-window h2 {
             margin-top: 0;
             text-align: center;
             color: #ffa500;
         }
+        
         #close-block9 {
             position: absolute;
             top: 5px;
@@ -543,14 +548,22 @@
         </div>
         <div id="day-night">Day</div>
         <div id="build-mode-indicator">Build: OFF</div>
-        <div id="joystick-container">
-            <div id="joystick"></div>
+        
+        <!-- Warcraft-style UI -->
+        <div id="warcraft-ui">
+            <div id="avatar-container">
+                <div id="avatar"></div>
+            </div>
+            
+            <div id="action-buttons">
+                <div id="attack-btn" class="action-btn">ATTACK</div>
+                <div id="craft-btn" class="action-btn">CRAFT</div>
+                <div id="build-btn" class="action-btn">BUILD</div>
+                <div id="mine-btn" class="action-btn">MINE</div>
+            </div>
+            
+            <div id="inventory"></div>
         </div>
-        <div id="attack-btn">ATTACK</div>
-        <div id="build-btn">BUILD</div>
-        <div id="crafting-btn">CRAFT</div>
-        <div id="mine-btn">MINE</div>
-        <div id="inventory"></div>
         
         <!-- Crafting Window -->
         <div id="crafting-window">
@@ -807,13 +820,15 @@
         const NIGHT_DURATION = 480; // 8 minutes in seconds (as requested)
         const SLIME_SPAWN_RATE = 5; // seconds between spawns during night (reduced from 2)
         const SLIME_MAX_COUNT = 10; // Maximum number of slimes at once (new limit)
-        const OVCA_SPAWN_RATE = 600; // 10 minutes in seconds
+        const OVCA_SPAWN_RATE_FAST = 120; // 2 minutes in seconds
+        const OVCA_SPAWN_RATE_SLOW = 1200; // 20 minutes in seconds
         const GHOST_SPAWN_RATE = 10; // seconds between spawns during night
         const GHOST_BASE_MAX = 6; // Base max ghosts at night
         const GHOST_MAX_LEVEL = 36; // Max ghosts at level 20+
         const BLOCK_SIZE = 32; // Size of building blocks
         const HARVEST_RANGE = 70; // Range for harvesting resources
         const LIGHT_RADIUS = 150; // Radius of light from BLOCK6
+        const HEAD_DROP_CHANCE = 0.2; // 20% chance to drop HEAD.png from GHOST
 
         // Game variables
         let canvas, ctx;
@@ -844,11 +859,14 @@
                 BLOCK7: 0,
                 BLOCK8: 0,
                 BLOCK9: 0,
-                CREST: 0
+                CREST: 0,
+                HEAD: 0
             },
             selectedItem: null,
             buildMode: false,
-            mineMode: false
+            mineMode: false,
+            ghostMode: false,
+            ghostModeTimer: 0
         };
         let slimes = [];
         let ovcas = [];
@@ -863,16 +881,13 @@
         let slimeSpawnTimer = 0;
         let ovcaSpawnTimer = 0;
         let ghostSpawnTimer = 0;
-        let joystickActive = false;
-        let joystickAngle = 0;
-        let joystickDistance = 0;
         let attackPressed = false;
         let buildPressed = false;
         let craftPressed = false;
         let minePressed = false;
         let textures = {};
         let assetsLoaded = 0;
-        const totalAssets = 17; // player, tree, rock, grass, slime, block1, block2, block3, block4, PAlKA, BLOCK5, UGL, BLOCK6, OVCA, BLOCK7, BLOCK8, BLOCK9, GHOST, CREST
+        const totalAssets = 18; // player, tree, rock, grass, slime, block1, block2, block3, block4, PAlKA, BLOCK5, UGL, BLOCK6, OVCA, BLOCK7, BLOCK8, BLOCK9, GHOST, CREST, HEAD
 
         // Initialize game
         function init() {
@@ -909,6 +924,41 @@
             
             // Initialize BLOCK9 UI
             initBlock9UI();
+            
+            // Initialize action buttons
+            initActionButtons();
+        }
+
+        // Initialize action buttons
+        function initActionButtons() {
+            const attackBtn = document.getElementById('attack-btn');
+            const craftBtn = document.getElementById('craft-btn');
+            const buildBtn = document.getElementById('build-btn');
+            const mineBtn = document.getElementById('mine-btn');
+            
+            attackBtn.addEventListener('click', () => {
+                attackPressed = !attackPressed;
+                attackBtn.classList.toggle('active');
+                
+                // If HEAD is selected and attack is pressed, activate ghost mode
+                if (attackPressed && player.selectedItem === 'HEAD') {
+                    activateGhostMode();
+                }
+            });
+            
+            craftBtn.addEventListener('click', () => {
+                const craftingWindow = document.getElementById('crafting-window');
+                craftingWindow.style.display = craftingWindow.style.display === 'block' ? 'none' : 'block';
+                updateCraftingButtons();
+            });
+            
+            buildBtn.addEventListener('click', () => {
+                toggleBuildMode();
+            });
+            
+            mineBtn.addEventListener('click', () => {
+                toggleMineMode();
+            });
         }
 
         // Load game state from localStorage
@@ -939,7 +989,8 @@
                     BLOCK7: 0,
                     BLOCK8: 0,
                     BLOCK9: 0,
-                    CREST: 0
+                    CREST: 0,
+                    HEAD: 0
                 };
                 
                 // Restore placed blocks
@@ -1004,7 +1055,8 @@
                 { id: 'BLOCK7', name: 'BLOCK7', img: 'assets/BLOCK7.png' },
                 { id: 'BLOCK8', name: 'BLOCK8', img: 'assets/BLOCK8.png' },
                 { id: 'BLOCK9', name: 'BLOCK9', img: 'assets/BLOCK9.png' },
-                { id: 'CREST', name: 'CREST', img: 'assets/CREST.png' }
+                { id: 'CREST', name: 'CREST', img: 'assets/CREST.png' },
+                { id: 'HEAD', name: 'HEAD', img: 'assets/HEAD.png' }
             ];
             
             items.forEach((item, index) => {
@@ -1040,6 +1092,17 @@
             updateInventoryUI();
         }
 
+        // Activate ghost mode when HEAD is selected and attack is pressed
+        function activateGhostMode() {
+            if (player.inventory.HEAD > 0) {
+                player.ghostMode = true;
+                player.ghostModeTimer = 60; // 1 minute (60 seconds)
+                player.inventory.HEAD--;
+                updateInventoryUI();
+                saveGame();
+            }
+        }
+
         // Update inventory UI
         function updateInventoryUI() {
             const slots = document.querySelectorAll('.inventory-slot');
@@ -1069,7 +1132,6 @@
 
         // Initialize crafting UI
         function initCraftingUI() {
-            const craftingBtn = document.getElementById('crafting-btn');
             const craftingWindow = document.getElementById('crafting-window');
             const closeCrafting = document.getElementById('close-crafting');
             const craftBlocksBtn = document.getElementById('craft-blocks');
@@ -1081,12 +1143,6 @@
             const craftBlock6Btn = document.getElementById('craft-block6');
             const craftBlock8Btn = document.getElementById('craft-block8');
             const craftBlock9Btn = document.getElementById('craft-block9');
-            
-            // Toggle crafting window
-            craftingBtn.addEventListener('click', () => {
-                craftingWindow.style.display = craftingWindow.style.display === 'block' ? 'none' : 'block';
-                updateCraftingButtons();
-            });
             
             // Close crafting window
             closeCrafting.addEventListener('click', () => {
@@ -1518,6 +1574,10 @@
             textures.CREST = new Image();
             textures.CREST.onload = assetLoaded;
             textures.CREST.src = 'assets/CREST.png';
+            
+            textures.HEAD = new Image();
+            textures.HEAD.onload = assetLoaded;
+            textures.HEAD.src = 'assets/HEAD.png';
         }
 
         function assetLoaded() {
@@ -1615,62 +1675,14 @@
 
         // Set up controls
         function setupControls() {
-            // Virtual joystick
-            const joystickContainer = document.getElementById('joystick-container');
-            const joystick = document.getElementById('joystick');
-            
-            joystickContainer.addEventListener('touchstart', handleJoystickStart);
-            joystickContainer.addEventListener('touchmove', handleJoystickMove);
-            joystickContainer.addEventListener('touchend', handleJoystickEnd);
-            
-            // Mouse controls for desktop
-            joystickContainer.addEventListener('mousedown', handleJoystickStart);
-            document.addEventListener('mousemove', handleJoystickMove);
-            document.addEventListener('mouseup', handleJoystickEnd);
-            
             // Attack button
             const attackBtn = document.getElementById('attack-btn');
-            attackBtn.addEventListener('touchstart', () => { attackPressed = true; });
-            attackBtn.addEventListener('touchend', () => { attackPressed = false; });
-            attackBtn.addEventListener('mousedown', () => { attackPressed = true; });
-            attackBtn.addEventListener('mouseup', () => { attackPressed = false; });
-            attackBtn.addEventListener('mouseleave', () => { attackPressed = false; });
             
             // Build button
             const buildBtn = document.getElementById('build-btn');
-            buildBtn.addEventListener('touchstart', () => { 
-                buildPressed = true; 
-                toggleBuildMode();
-            });
-            buildBtn.addEventListener('touchend', () => { buildPressed = false; });
-            buildBtn.addEventListener('mousedown', () => { 
-                buildPressed = true; 
-                toggleBuildMode();
-            });
-            buildBtn.addEventListener('mouseup', () => { buildPressed = false; });
-            buildBtn.addEventListener('mouseleave', () => { buildPressed = false; });
-            
-            // Crafting button
-            const craftingBtn = document.getElementById('crafting-btn');
-            craftingBtn.addEventListener('touchstart', () => { craftPressed = true; });
-            craftingBtn.addEventListener('touchend', () => { craftPressed = false; });
-            craftingBtn.addEventListener('mousedown', () => { craftPressed = true; });
-            craftingBtn.addEventListener('mouseup', () => { craftPressed = false; });
-            craftingBtn.addEventListener('mouseleave', () => { craftPressed = false; });
             
             // Mine button
             const mineBtn = document.getElementById('mine-btn');
-            mineBtn.addEventListener('touchstart', () => { 
-                minePressed = true; 
-                toggleMineMode();
-            });
-            mineBtn.addEventListener('touchend', () => { minePressed = false; });
-            mineBtn.addEventListener('mousedown', () => { 
-                minePressed = true; 
-                toggleMineMode();
-            });
-            mineBtn.addEventListener('mouseup', () => { minePressed = false; });
-            mineBtn.addEventListener('mouseleave', () => { minePressed = false; });
             
             // Keyboard controls
             document.addEventListener('keydown', handleKeyDown);
@@ -1726,8 +1738,10 @@
                     player.selectedItem !== 'block4' &&
                     player.selectedItem !== 'BLOCK5' &&
                     player.selectedItem !== 'BLOCK6' &&
+                    player.selectedItem !== 'BLOCK7' &&
                     player.selectedItem !== 'BLOCK8' &&
-                    player.selectedItem !== 'BLOCK9'
+                    player.selectedItem !== 'BLOCK9' &&
+                    player.selectedItem !== 'CREST'
                 )) return;
                 
                 // Check if player has enough blocks
@@ -1866,62 +1880,6 @@
             }
         }
 
-        // Joystick handlers
-        function handleJoystickStart(e) {
-            e.preventDefault();
-            joystickActive = true;
-            updateJoystickPosition(e);
-        }
-
-        function handleJoystickMove(e) {
-            if (!joystickActive) return;
-            e.preventDefault();
-            updateJoystickPosition(e);
-        }
-
-        function handleJoystickEnd(e) {
-            e.preventDefault();
-            joystickActive = false;
-            joystickDistance = 0;
-            document.getElementById('joystick').style.transform = 'translate(-50%, -50%)';
-        }
-
-        function updateJoystickPosition(e) {
-            const joystickContainer = document.getElementById('joystick-container');
-            const joystick = document.getElementById('joystick');
-            const rect = joystickContainer.getBoundingClientRect();
-            
-            let clientX, clientY;
-            
-            if (e.touches) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-            
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            const dx = clientX - centerX;
-            const dy = clientY - centerY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            const maxDistance = rect.width / 2;
-            joystickDistance = Math.min(distance, maxDistance) / maxDistance;
-            
-            if (distance > 0) {
-                joystickAngle = Math.atan2(dy, dx);
-                player.direction = { x: Math.cos(joystickAngle), y: Math.sin(joystickAngle) };
-            }
-            
-            const joystickX = (dx / distance) * Math.min(distance, maxDistance);
-            const joystickY = (dy / distance) * Math.min(distance, maxDistance);
-            
-            joystick.style.transform = `translate(calc(-50% + ${joystickX}px), calc(-50% + ${joystickY}px)`;
-        }
-
         // Keyboard handlers
         const keys = {};
         function handleKeyDown(e) {
@@ -1933,21 +1891,21 @@
             if (e.key === 'ArrowLeft' || e.key === 'a') player.direction = { x: -1, y: 0 };
             if (e.key === 'ArrowRight' || e.key === 'd') player.direction = { x: 1, y: 0 };
             
-            // Toggle build mode with B key
-            if (e.key === 'b' || e.key === 'B') {
+            // Toggle build mode with Y key
+            if (e.key === 'y' || e.key === 'Y') {
                 toggleBuildMode();
             }
             
-            // Toggle mine mode with M key
-            if (e.key === 'm' || e.key === 'M') {
-                toggleMineMode();
-            }
-            
-            // Open crafting with C key
-            if (e.key === 'c' || e.key === 'C') {
+            // Open crafting with E key
+            if (e.key === 'e' || e.key === 'E') {
                 const craftingWindow = document.getElementById('crafting-window');
                 craftingWindow.style.display = craftingWindow.style.display === 'block' ? 'none' : 'block';
                 updateCraftingButtons();
+            }
+            
+            // Toggle mine mode with T key
+            if (e.key === 't' || e.key === 'T') {
+                toggleMineMode();
             }
             
             // Number keys for inventory selection
@@ -1991,6 +1949,17 @@
                 player.selectedItem = 'BLOCK6';
                 updateInventorySelection();
             }
+            
+            // Space for attack
+            if (e.key === ' ') {
+                attackPressed = true;
+                document.getElementById('attack-btn').classList.add('active');
+                
+                // If HEAD is selected and attack is pressed, activate ghost mode
+                if (player.selectedItem === 'HEAD') {
+                    activateGhostMode();
+                }
+            }
         }
 
         // Update inventory selection UI
@@ -2013,7 +1982,10 @@
             keys[e.key] = false;
             
             // Space for attack
-            if (e.key === ' ') attackPressed = false;
+            if (e.key === ' ') {
+                attackPressed = false;
+                document.getElementById('attack-btn').classList.remove('active');
+            }
         }
 
         // Game loop
@@ -2025,23 +1997,18 @@
 
         // Update game state
         function update() {
-            // Update player position based on joystick or keyboard input
+            // Update player position based on keyboard input
             let moveX = 0, moveY = 0;
             
-            if (joystickActive) {
-                moveX = Math.cos(joystickAngle) * player.speed * joystickDistance;
-                moveY = Math.sin(joystickAngle) * player.speed * joystickDistance;
-            } else {
-                if (keys['ArrowUp'] || keys['w']) moveY = -player.speed;
-                if (keys['ArrowDown'] || keys['s']) moveY = player.speed;
-                if (keys['ArrowLeft'] || keys['a']) moveX = -player.speed;
-                if (keys['ArrowRight'] || keys['d']) moveX = player.speed;
-                
-                // Normalize diagonal movement
-                if (moveX !== 0 && moveY !== 0) {
-                    moveX *= 0.7071; // 1/sqrt(2)
-                    moveY *= 0.7071;
-                }
+            if (keys['ArrowUp'] || keys['w']) moveY = -player.speed;
+            if (keys['ArrowDown'] || keys['s']) moveY = player.speed;
+            if (keys['ArrowLeft'] || keys['a']) moveX = -player.speed;
+            if (keys['ArrowRight'] || keys['d']) moveX = player.speed;
+            
+            // Normalize diagonal movement
+            if (moveX !== 0 && moveY !== 0) {
+                moveX *= 0.7071; // 1/sqrt(2)
+                moveY *= 0.7071;
             }
             
             // Update player position with collision detection
@@ -2056,30 +2023,32 @@
                 player.y = newY;
             }
             
-            // Check collision with placed blocks (only for non-player-pass blocks)
-            const playerRect = {
-                x: player.x,
-                y: player.y,
-                width: PLAYER_SIZE,
-                height: PLAYER_SIZE
-            };
-            
-            for (const block of placedBlocks) {
-                // Skip collision check for player-pass blocks (type block3 and BLOCK6)
-                if (block.type === 'block3' || block.type === 'BLOCK6') continue;
-                
-                const blockRect = {
-                    x: block.x,
-                    y: block.y,
-                    width: BLOCK_SIZE,
-                    height: BLOCK_SIZE
+            // Check collision with placed blocks (only for non-player-pass blocks and when not in ghost mode)
+            if (!player.ghostMode) {
+                const playerRect = {
+                    x: player.x,
+                    y: player.y,
+                    width: PLAYER_SIZE,
+                    height: PLAYER_SIZE
                 };
                 
-                if (checkCollision(playerRect, blockRect)) {
-                    // Move player back
-                    player.x -= moveX;
-                    player.y -= moveY;
-                    break;
+                for (const block of placedBlocks) {
+                    // Skip collision check for player-pass blocks (type block3 and BLOCK6)
+                    if (block.type === 'block3' || block.type === 'BLOCK6') continue;
+                    
+                    const blockRect = {
+                        x: block.x,
+                        y: block.y,
+                        width: BLOCK_SIZE,
+                        height: BLOCK_SIZE
+                    };
+                    
+                    if (checkCollision(playerRect, blockRect)) {
+                        // Move player back
+                        player.x -= moveX;
+                        player.y -= moveY;
+                        break;
+                    }
                 }
             }
             
@@ -2090,6 +2059,14 @@
             // Keep camera within world bounds
             camera.x = Math.max(0, Math.min(camera.x, WORLD_SIZE - canvas.width));
             camera.y = Math.max(0, Math.min(camera.y, WORLD_SIZE - canvas.height));
+            
+            // Update ghost mode timer
+            if (player.ghostMode) {
+                player.ghostModeTimer -= 1/60; // Assuming 60 FPS
+                if (player.ghostModeTimer <= 0) {
+                    player.ghostMode = false;
+                }
+            }
             
             // Update day/night cycle with smooth transitions
             dayNightTimer += 1/60; // Assuming 60 FPS
@@ -2148,9 +2125,11 @@
                 }
             }
             
-            // Spawn OVCA (sheep) every 10 minutes
+            // Spawn OVCA (sheep) - adjusted spawn rate based on current count
             ovcaSpawnTimer += 1/60;
-            if (ovcaSpawnTimer >= OVCA_SPAWN_RATE) {
+            const ovcaSpawnRate = ovcas.length <= 5 ? OVCA_SPAWN_RATE_FAST : OVCA_SPAWN_RATE_SLOW;
+            
+            if (ovcaSpawnTimer >= ovcaSpawnRate) {
                 ovcaSpawnTimer = 0;
                 
                 // Spawn ovca at random position
@@ -2511,6 +2490,13 @@
                     ghosts.splice(i, 1);
                     // Add experience
                     player.exp += 50;
+                    
+                    // 20% chance to drop HEAD.png
+                    if (Math.random() < HEAD_DROP_CHANCE) {
+                        player.inventory.HEAD += 1;
+                        updateInventoryUI();
+                    }
+                    
                     // Check level up
                     if (player.exp >= player.expToNextLevel) {
                         player.level++;
@@ -2782,7 +2768,14 @@
             // Draw player
             const playerX = player.x - camera.x;
             const playerY = player.y - camera.y;
+            
+            // Make player semi-transparent in ghost mode
+            if (player.ghostMode) {
+                ctx.globalAlpha = 0.5;
+            }
+            
             ctx.drawImage(textures.player, playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
+            ctx.globalAlpha = 1.0;
             
             // Draw attack effect if attacking
             if (player.attackCooldown > 0.4) { // First 0.1 seconds of attack
